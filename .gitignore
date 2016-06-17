@@ -1,0 +1,26 @@
+*.class
+*.log
+
+# sbt specific
+.cache/
+.history/
+.lib/
+dist/*
+target/
+lib_managed/
+src_managed/
+project/boot/
+project/plugins/project/
+
+# Scala-IDE specific
+.scala_dependencies
+.worksheet
+
+# Intellij
+.idea/
+.history
+
+# App
+/save/
+oryx-fx/src/main/resources/oryx_lofi_horror/*.png
+oryx-fx/src/main/resources/oryx_16-bit_sci-fi/*.png

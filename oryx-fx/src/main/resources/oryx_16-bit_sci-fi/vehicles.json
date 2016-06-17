@@ -1,0 +1,10 @@
+{
+  "filename:": "oryx_16bit_scifi_vehicles_trans.png",
+  "size": 3,
+  "sprites": [
+    { "name": "ship-gray-up", "start": 2160},
+    { "name": "ship-gray-right", "start": 2166},
+    { "name": "ship-gray-down", "start": 2172},
+    { "name": "ship-gray-left", "start": 2178}
+  ]
+}
