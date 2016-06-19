@@ -16,12 +16,19 @@ import play.api.libs.json.Json
   */
 case class SpriteDef(name: String, tile: Int, size: Option[Int])
 
+object SpriteDef {
+  implicit val format = Json.format[SpriteDef]
+}
 /**
   * Image containing sprites
   *
   * @param size default sprite dimension in tiles (8x8 pixel units)
   */
-case class TilesetDef(filename: String, size: Int, sprites: List[SpriteDef])
+case class TilesetDef(filename: String, size: Int, sprites: Seq[SpriteDef])
+
+object TilesetDef {
+  implicit val format = Json.format[TilesetDef]
+}
 
 /**
   * Oryx Package Set
@@ -30,20 +37,25 @@ case class TilesetDef(filename: String, size: Int, sprites: List[SpriteDef])
   */
 case class OryxSetDef(tilesets: List[String])
 
-case class Sprite(name: String, startTile: Int, size: Int)
+object OryxSetDef {
+  implicit val format = Json.format[OryxSetDef]
+}
+
+case class OryxSprite(name: String, startTile: Int, size: Int)
 
 /**
   * Single image containing multiple sprites
+  *
   * @param image
   * @param sprites
   */
-class Tileset(image: Image, sprites: List[Sprite]) {
+class Tileset(image: Image, sprites: Seq[OryxSprite]) {
   import OryxSet._
 
   // sprites per row
   protected val spriteWidth = Math.round(image.getWidth / tileWidth)
 
-  protected def viewport(startTile: Int, size: Int): Rectangle2D = {
+  protected def toViewport(startTile: Int, size: Int): Rectangle2D = {
     val x = Math.floorMod(startTile, spriteWidth)
     val y = Math.floorDiv(startTile, spriteWidth)
 
@@ -52,7 +64,7 @@ class Tileset(image: Image, sprites: List[Sprite]) {
 
   protected def imageView(startTile: Int, size: Int): ImageView = {
     val imageView = new ImageView(image)
-    val viewport = viewport(startTile, size)
+    val viewport = toViewport(startTile, size)
     imageView.setViewport(viewport)
     imageView
   }
@@ -64,17 +76,17 @@ class Tileset(image: Image, sprites: List[Sprite]) {
 
 object Tileset {
   def tileset(oryxSetName: String, tilesetDef: TilesetDef): Tileset = {
-    val isImage = getClass.getResourceAsStream(s"/$oryxSetName/${tilesetDef.filename}.json")
+    val isImage = getClass.getResourceAsStream(s"/$oryxSetName/${tilesetDef.filename}")
     val sprites = tilesetDef.sprites.map(sprite => {
       import sprite._
-      Sprite(name, tile, size.getOrElse(tilesetDef.size))
+      OryxSprite(name, tile, size.getOrElse(tilesetDef.size))
     })
 
     new Tileset(new Image(isImage), sprites)
   }
 }
 
-class OryxSet(oryxSetName: String, tilesets: List[Tileset]) {
+class OryxSet(oryxSetName: String, tilesets: Seq[Tileset]) {
   val views = tilesets.map(tileset => tileset.views).reduce(_++_)
 
   def view(spriteName: String): ImageView = views(spriteName)
@@ -103,7 +115,10 @@ object OryxSet {
 }
 
 object Oryx {
-  protected val sets = List("oryx_16-bit_sci-fi", "oryx_lofi_horror")
+  protected val sets = List(
+    "oryx_16-bit_sci-fi"
+//    ,"oryx_lofi_horror"
+  )
   protected val views: Map[String, ImageView] = sets.map(OryxSet.load(_).views).reduce(_++_)
 
   def view(name: String): ImageView = views(name)

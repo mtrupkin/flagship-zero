@@ -46,7 +46,7 @@ trait Game { self: Controller =>
     }
 
     override def update(elapsed: Int): Unit = {
-      console.draw(world)
+      console.draw(world.mapLayer)
     }
 
     def handleMouseMove(mouseEvent: sfxi.MouseEvent): Unit = {

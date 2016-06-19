@@ -10,10 +10,6 @@ import model.WorldBuilder
 
 class ConsoleApp extends Application {
 	override def start(primaryStage: Stage) {
-		val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
-    val is = getClass.getResourceAsStream(s"/fonts/RobotoMono-Regular.ttf")
-		ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, is))
-
 		primaryStage.setTitle("Flagship - Zero")
 
 		object Controller extends Controller {

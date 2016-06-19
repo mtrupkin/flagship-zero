@@ -1,17 +1,17 @@
 {
-  "filename:": "oryx_16bit_scifi_world_extra_trans.png",
+  "filename": "oryx_16bit_scifi_world_extra_trans.png",
   "size": 3,
   "sprites": [
-    { "name": "planet-gray", "start": 0},
-    { "name": "planet-blue", "start": 3},
-    { "name": "planet-purple", "start": 6},
-    { "name": "planet-rock", "start": 9},
-    { "name": "planet-gray-exploded", "start": 12},
-    { "name": "planet-blue-rings", "start": 15},
-    { "name": "planet-rock-large", "start": 90, "size": 5},
-    { "name": "planet-blue-large", "start": 95, "size": 5},
-    { "name": "planet-red-exploded-large", "start": 100, "size": 5},
-    { "name": "star", "start": 245, "size": 5},
-    { "name": "star-eclipse", "start": 250, "size": 5}
+    { "name": "planet-gray", "tile": 0},
+    { "name": "planet-blue", "tile": 3},
+    { "name": "planet-purple", "tile": 6},
+    { "name": "planet-rock", "tile": 9},
+    { "name": "planet-gray-exploded", "tile": 12},
+    { "name": "planet-blue-rings", "tile": 15},
+    { "name": "planet-rock-large", "tile": 90, "size": 5},
+    { "name": "planet-blue-large", "tile": 95, "size": 5},
+    { "name": "planet-red-exploded-large", "tile": 100, "size": 5},
+    { "name": "star", "tile": 245, "size": 5},
+    { "name": "star-eclipse", "tile": 250, "size": 5}
   ]
 }
