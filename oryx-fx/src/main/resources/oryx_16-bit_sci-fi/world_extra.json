@@ -1,6 +1,8 @@
 {
   "filename": "oryx_16bit_scifi_world_extra_trans.png",
   "size": 3,
+  "width": 240,
+  "height": 136,
   "sprites": [
     { "name": "planet-gray", "tile": 0},
     { "name": "planet-blue", "tile": 3},
@@ -12,6 +14,12 @@
     { "name": "planet-blue-large", "tile": 95, "size": 5},
     { "name": "planet-red-exploded-large", "tile": 100, "size": 5},
     { "name": "star", "tile": 245, "size": 5},
-    { "name": "star-eclipse", "tile": 250, "size": 5}
+    { "name": "star-eclipse", "tile": 250, "size": 5},
+    { "name": "bg-1", "tile": 413, "size": 1},
+    { "name": "bg-2", "tile": 414, "size": 1},
+    { "name": "bg-3", "tile": 415, "size": 1},
+    { "name": "bg-4", "tile": 416, "size": 1},
+    { "name": "bg-5", "tile": 417, "size": 1},
+    { "name": "bg-6", "tile": 418, "size": 1}
   ]
 }

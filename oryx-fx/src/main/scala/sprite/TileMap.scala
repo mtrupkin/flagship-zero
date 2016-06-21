@@ -7,7 +7,8 @@ import org.mtrupkin.math.Point
 /**
   * Created by mtrupkin on 6/18/2016.
   */
-trait MapLayer {
+trait Layer {
   def apply(p: Point): Option[ImageView]
 }
+
 
