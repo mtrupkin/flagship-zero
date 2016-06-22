@@ -1,10 +1,20 @@
 {
-  "filename:": "oryx_16bit_scifi_vehicles_trans.png",
+  "filename": "oryx_16bit_scifi_vehicles_trans.png",
+  "width": 576,
+  "height": 384,
   "size": 3,
   "sprites": [
-    { "name": "ship-gray-up", "start": 2160},
-    { "name": "ship-gray-right", "start": 2166},
-    { "name": "ship-gray-down", "start": 2172},
-    { "name": "ship-gray-left", "start": 2178}
+    { "name": "ship-5-green-up", "tile": 1104},
+    { "name": "ship-5-green-right", "tile": 1110},
+    { "name": "ship-5-green-down", "tile": 1116},
+    { "name": "ship-5-green-left", "tile": 1112},
+    { "name": "ship-1-gray-up", "tile": 2160},
+    { "name": "ship-1-gray-right", "tile": 2166},
+    { "name": "ship-1-gray-down", "tile": 2172},
+    { "name": "ship-1-gray-left", "tile": 2178},
+    { "name": "ship-3-blue-up", "tile": 2640},
+    { "name": "ship-3-blue-right", "tile": 2646},
+    { "name": "ship-3-blue-down", "tile": 2652},
+    { "name": "ship-3-blue-left", "tile": 2658}
   ]
 }

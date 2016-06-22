@@ -19,6 +19,7 @@ case class SpriteDef(name: String, tile: Int, size: Option[Int])
 object SpriteDef {
   implicit val format = Json.format[SpriteDef]
 }
+
 /**
   * Image containing sprites
   *
@@ -64,7 +65,7 @@ class Tileset(image: Image, scale: Int, sprites: Seq[OryxSprite]) {
     case x => s"$name-x$x"
   }
 
-  val spriteNames: Seq[String] = sprites.map(_.name)
+  val spriteNames: Seq[String] = sprites.map(sprite => scaledName(sprite.name))
 
 
   protected def imageView(startTile: Int, size: Int): ImageView = {
