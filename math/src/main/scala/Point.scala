@@ -18,4 +18,8 @@ case class Point(x: Int, y: Int) {
 
 object Point {
   val Origin: Point = Point(0, 0)
+
+  // conversions
+  implicit def pointToSize(p: Point): Size = Size(p.x, p.y)
+  implicit def pointToTuple(p: Point): (Double, Double) = (p.x, p.y)
 }

@@ -1,4 +1,4 @@
-package sprite
+package control
 
 import javafx.scene.image.ImageView
 
@@ -10,5 +10,3 @@ import org.mtrupkin.math.Point
 trait Layer {
   def apply(p: Point): Option[ImageView]
 }
-
-

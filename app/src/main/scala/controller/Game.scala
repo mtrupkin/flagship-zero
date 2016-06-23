@@ -8,7 +8,7 @@ import model.{World, WorldBuilder}
 import org.mtrupkin.control.ConsoleFx
 import org.mtrupkin.math.Point
 import org.mtrupkin.math.Vect
-import sprite.OryxSet
+import tileset.OryxSet
 
 import scalafx.Includes._
 import scalafx.beans.property.DoubleProperty
@@ -48,6 +48,7 @@ trait Game { self: Controller =>
 
     override def update(elapsed: Int): Unit = {
       console.draw(world.layers)
+      world.objects.foreach(tile => console.draw(tile.position, tile.imageView))
     }
 
     def handleMouseMove(mouseEvent: sfxi.MouseEvent): Unit = {

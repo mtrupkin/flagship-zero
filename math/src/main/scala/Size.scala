@@ -21,5 +21,5 @@ object Size {
   val ONE = new Size(1, 1)
 
   // conversions
-  implicit def ToPoint(s: Size): Point = Point(s.width, s.height)
+  implicit def toPoint(s: Size): Point = Point(s.width, s.height)
 }
