@@ -15,9 +15,14 @@ import play.api.libs.json.Json
   * @param size dimension of sprite in tile units
   */
 case class SpriteDef(name: String, tile: Int, size: Option[Int])
+case class SpriteSheetDef(name: String, tile: Int)
 
 object SpriteDef {
   implicit val format = Json.format[SpriteDef]
+}
+
+object SpriteSheetDef {
+  implicit val format = Json.format[SpriteSheetDef]
 }
 
 /**
@@ -26,9 +31,14 @@ object SpriteDef {
   * @param size default sprite dimension in tiles (8x8 pixel units)
   */
 case class TilesetDef(filename: String, size: Int, width: Int, height: Int, sprites: Seq[SpriteDef])
+case class TilesetSheetDef(filename: String, tileWidth: Int, tileHeight: Int, sprites: Seq[SpriteSheetDef])
 
 object TilesetDef {
   implicit val format = Json.format[TilesetDef]
+}
+
+object TilesetSheetDef {
+  implicit val format = Json.format[TilesetSheetDef]
 }
 
 /**
@@ -36,7 +46,10 @@ object TilesetDef {
   *
   * @param tilesets image names that contains sprites
   */
-case class OryxSetDef(tilesets: List[String])
+case class OryxSetDef(
+  tilesets: List[String],
+  sliced: List[String],
+  sheets: List[String])
 
 object OryxSetDef {
   implicit val format = Json.format[OryxSetDef]
@@ -44,10 +57,15 @@ object OryxSetDef {
 
 case class OryxSprite(name: String, startTile: Int, size: Int)
 
+trait SpriteSet {
+  def spriteNames: Seq[String]
+  def imageView(sprite: String): ImageView
+}
+
 /**
   * Single image containing multiple sprites
   */
-class Tileset(image: Image, scale: Int, sprites: Seq[OryxSprite]) {
+class Tileset(image: Image, scale: Int, sprites: Seq[OryxSprite]) extends SpriteSet {
   val tileSize = 8 * scale
 
   // sprites per row
@@ -103,7 +121,30 @@ object Tileset {
   }
 }
 
-class OryxSet(oryxSetName: String, tilesets: Seq[Tileset]) {
+case class OryxSprite(name: String, startTile: Int, size: Int)
+
+case class SheetSprite(name: String, tile: Int,
+  tileWidth: Int, tileHeight: Int,
+  image: Image)
+
+class SheetTileSet(sprites: Seq[SheetSprite]) extends SpriteSet {
+
+}
+
+case class SlicedSprite(name: String, image: Image)
+
+class SlicedTileSet(sprites: Seq[SlicedSprite]) extends SpriteSet {
+  val spriteNames: Seq[String] = sprites.map(_.name)
+
+  def imageView(sprite: String): ImageView = {
+    val oryxSprite = sprites.find(s => s.name == sprite).get
+    new ImageView(oryxSprite.image)
+  }
+}
+
+class OryxSet(
+  oryxSetName: String,
+  tilesets: Seq[SpriteSet]) {
   val spriteNames: Seq[String] = tilesets.flatMap(_.spriteNames)
 
   def imageView(sprite: String): ImageView = {
@@ -137,6 +178,7 @@ object Oryx {
     "oryx_16-bit_sci-fi"
     ,"oryx_lofi_horror"
   )
+
   protected val oryxSets: Seq[OryxSet] = oryxSetNames.map(OryxSet.load(_))
 
   def imageView(sprite: String): ImageView = {

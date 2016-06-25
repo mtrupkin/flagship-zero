@@ -1,0 +1,22 @@
+{
+  "location": "sliced/world_extras_sliced/images/oryx_16bit_scifi_world_extra_",
+  "sprites": [
+    { "name": "planet-gray", "tile": "01"},
+    { "name": "planet-blue", "tile": "02"},
+    { "name": "planet-purple", "tile": "03"},
+    { "name": "planet-rock", "tile": "04"},
+    { "name": "planet-gray-exploded", "tile": "05"},
+    { "name": "planet-blue-rings", "tile": "06"},
+    { "name": "planet-rock-large", "tile": "11"},
+    { "name": "planet-blue-large", "tile": "12"},
+    { "name": "planet-red-exploded-large", "tile": "13"},
+    { "name": "star", "tile": "18"},
+    { "name": "star-eclipse", "tile": "19"},
+    { "name": "bg-1", "tile": "46"},
+    { "name": "bg-2", "tile": "47"},
+    { "name": "bg-3", "tile": "48"},
+    { "name": "bg-4", "tile": "49"},
+    { "name": "bg-5", "tile": "50"},
+    { "name": "bg-6", "tile": "51"}
+  ]
+}

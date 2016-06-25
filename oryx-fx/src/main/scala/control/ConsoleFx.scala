@@ -8,26 +8,36 @@ import org.mtrupkin.math.{Point, Size}
 /**
   * Created by mtrupkin on 3/22/2016.
   */
-class ConsoleFx(val size: Size = Size(80, 80)) extends Pane {
-  val tileSize = 8
+class ConsoleFx(val tileSize: Size = Size(80, 80)) extends Pane {
+  // size of individual tile
+  var tileDim = Size(8, 8)
 
   var cursor: Option[Point] = None
 
-  protected val controlSize = tileToPixel(size)
-  protected val controlSizeHalf = Size(controlSize.x/2, controlSize.y/2)
+  protected val controlSize = tileToPixel(tileSize)
+  // protected val controlSizeHalf = Size(controlSize.x/2, controlSize.y/2)
+  protected val tileSizeHalf = Size(tileSize.x/2, tileSize.y/2)
+
   setMinSize(controlSize.x, controlSize.y)
 
   def worldToView(world: Point): Point = {
-    Point(world.x + controlSizeHalf.width, controlSizeHalf.height - world.y)
+    val p = Point(world.x + tileSizeHalf.width, tileSizeHalf.height - world.y)
+    p
   }
 
   def viewToWorld(view: Point): Point = {
-    Point(view.x - controlSizeHalf.width, controlSizeHalf.height - view.y)
+    val p = Point(view.x - tileSizeHalf.width, tileSizeHalf.height - view.y)
+    p
   }
 
-  def draw(p: Point, imageView: ImageView): Unit = {
-    val p0 = worldToView(p)
-    imageView.relocate(p0.x, p0.y)
+  def drawWorld(worldPoint: Point, imageView: ImageView): Unit = {
+    val viewPoint = worldToView(worldPoint)
+    drawView(viewPoint, imageView)
+  }
+
+  def drawView(tilePoint: Point, imageView: ImageView): Unit = {
+    val p = tileToPixel(tilePoint)
+    imageView.relocate(p.x, p.y)
     getChildren.add(imageView)
   }
 
@@ -40,12 +50,11 @@ class ConsoleFx(val size: Size = Size(80, 80)) extends Pane {
   }
 
   protected def draw(layer: Layer): Unit = {
-    size.foreach(view => {
-      val world = viewToWorld(view)
+    tileSize.foreach(viewPoint => {
+      val worldPoint = viewToWorld(viewPoint)
       for {
-        imageView <- layer(world)
-        pixel = tileToPixel(view)
-      } draw(pixel, imageView)
+        imageView <- layer(worldPoint)
+      } drawView(viewPoint, imageView)
     })
   }
 
@@ -56,11 +65,11 @@ class ConsoleFx(val size: Size = Size(80, 80)) extends Pane {
   protected def pixelToTile(x: Double, y: Double): Option[Point] = {
     def floor(d: Double): Int = { Math.floor(d).toInt }
 
-    val c = Point(floor(x / tileSize), floor(y / tileSize))
-    if (size.in(c)) Some(c) else None
+    val c = Point(floor(x / tileDim.x), floor(y / tileDim.y))
+    if (tileSize.in(c)) Some(c) else None
   }
 
   protected def tileToPixel(p: Point): Point = {
-    Point(p.x * tileSize, p.y * tileSize)
+    Point(p.x * tileDim.x, p.y * tileDim.y)
   }
 }

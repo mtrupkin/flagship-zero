@@ -3,7 +3,7 @@ package model
 import javafx.scene.image.ImageView
 
 import control.Layer
-import org.mtrupkin.math.Point
+import org.mtrupkin.math.{Point, Vect}
 import tileset.Oryx
 
 import scala.util.Random
@@ -19,24 +19,29 @@ case class Planet(name: String, position: Point, planetClass: String) extends Ga
 
 case class Star(name: String, position: Point, starClass: String) extends GameObj
 
-case class Ship(name: String, position: Point, shipClass: String) extends GameObj
+case class Ship(
+  name: String,
+  position: Point,
+  shipClass: String,
+  faction: String,
+  heading: Vect = Vect.Up) extends GameObj
 
 class World {
-  val planet1 = Planet("Earth", Point(50, 50), "M")
-  val star1 = Star("Sol", Point(0, 0), "G")
-  val ship1 = Ship("Enterprise", Point(0, -50), "explorer")
-  val ship2 = Ship("Reliant", Point(-50, 0), "science")
-  val ship3 = Ship("Defiant", Point(50, 0), "military")
+  val planet1 = Planet("Earth", Point(0, 0), "M")
+  val star1 = Star("Sol", Point(-30, -30), "G")
+  val ship1 = Ship("Enterprise", Point(0, -15), "explorer", "blue")
+  val ship2 = Ship("Reliant", Point(-30, -30), "science", "green", Vect.Left)
+  val ship3 = Ship("Defiant", Point(30, -30), "military", "red", Vect.Down)
 
-  val gameObjects: List[GameObj] = List(planet1, star1, ship1, ship2, ship3)
+  val gameObjects: List[GameObj] = List(planet1, /*star1,*/ ship1, ship2, ship3)
 
   val background: Seq[Tile] = {
     for {
-      i <- 1 to 20
+      i <- 1 to 5
       rnd = Random.nextInt(6) + 1
     } yield {
-      val x = Random.nextInt(100) + 1
-      val y = Random.nextInt(100) + 1
+      val x = Random.nextInt(80) - 40
+      val y = Random.nextInt(80) - 40
       Tile(Point(x, y), Oryx.imageView(s"bg-$rnd"))
     }
   }
@@ -98,13 +103,20 @@ object Tile {
   )
 
   def apply(obj: GameObj): Tile = {
+    var rotate: Option[Int] = None
     val sprite = obj match {
-      case Planet(_, _, planetClass) => planetSprites(planetClass)
-      case Star(_, _, starClass) => starSprites(starClass)
-      case Ship(_, _, shipClass) => s"${shipSprites(shipClass)}-green"
+      case Planet(_, _, planetClass) => s"${planetSprites(planetClass)}"
+      case Star(_, _, starClass) => s"${starSprites(starClass)}"
+      case Ship(_, _, shipClass, faction, heading) => {
+        rotate = Some((heading.angleRadians*180/Math.PI).toInt)
+        s"${shipSprites(shipClass)}-$faction-x2"
+      }
     }
 
-    Tile(obj.position, Oryx.imageView(sprite))
+    val imageView = Oryx.imageView(sprite)
+    rotate.map(angle=>imageView.setRotate(angle))
+
+    Tile(obj.position, imageView)
   }
 
   def toLayer(tiles: Seq[Tile]): Layer = {

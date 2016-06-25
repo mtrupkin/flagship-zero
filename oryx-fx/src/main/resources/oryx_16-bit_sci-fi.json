@@ -1,3 +1,5 @@
 {
-  "tilesets": ["world_extra", "vehicles"]
+  "tilesets": ["world_extra"],
+  "sliced": ["world_extra-sliced"],
+  "sheets": ["vehicles-sheet"]
 }

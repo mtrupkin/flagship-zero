@@ -48,7 +48,7 @@ trait Game { self: Controller =>
 
     override def update(elapsed: Int): Unit = {
       console.draw(world.layers)
-      world.objects.foreach(tile => console.draw(tile.position, tile.imageView))
+      world.objects.foreach(tile => console.drawWorld(tile.position, tile.imageView))
     }
 
     def handleMouseMove(mouseEvent: sfxi.MouseEvent): Unit = {
@@ -79,10 +79,6 @@ trait Game { self: Controller =>
         case S | DOWN | NUMPAD2 => Option(Vect.Down)
         case A | LEFT | NUMPAD4 => Option(Vect.Left)
         case D | RIGHT | NUMPAD6 => Option(Vect.Right)
-        case NUMPAD1 | END => Option(Vect.LowerLeft)
-        case NUMPAD3 | PAGE_DOWN => Option(Vect.LowerRight)
-        case NUMPAD7 | HOME => Option(Vect.UpperLeft)
-        case NUMPAD9 | PAGE_UP => Option(Vect.UpperRight)
         case _ => None
       }
     }

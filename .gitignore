@@ -22,5 +22,5 @@ project/plugins/project/
 
 # App
 /save/
-oryx-fx/src/main/resources/oryx_lofi_horror/*.png
-oryx-fx/src/main/resources/oryx_16-bit_sci-fi/*.png
+oryx-fx/src/main/resources/oryx_lofi_horror/**/*.png
+oryx-fx/src/main/resources/oryx_16-bit_sci-fi/**/*.png
