@@ -84,7 +84,7 @@ object Tile {
   // explorer - science/military
   val shipSprites = Map(
     "military" -> "ship-5",
-    "explorer" -> "ship-1",
+    "explorer" -> "ship-4",
     "science" -> "ship-3"
   )
 
