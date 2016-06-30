@@ -29,6 +29,7 @@ object SpriteSlicedDef {
 }
 
 object SpriteSheetDef {
+  implicit val sizeFormat = Json.format[Size]
   implicit val format = Json.format[SpriteSheetDef]
 }
 

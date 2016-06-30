@@ -11,6 +11,8 @@ case class Vect(x: Int, y: Int) {
 }
 
 object Vect {
+  def toVect(p0: Point, p1: Point): Vect = Vect(p1.x - p0.x, p1.y - p0.y)
+
   val Up = Vect(0, 1)
   val Down = Vect(0, -1)
   val Left = Vect(-1, 0)

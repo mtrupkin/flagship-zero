@@ -62,7 +62,7 @@ class ConsoleFx(val tileSize: Size = Size(80, 80)) extends Pane {
     cursor = pixelToTile(x, y)
   }
 
-  protected def pixelToTile(x: Double, y: Double): Option[Point] = {
+  def pixelToTile(x: Double, y: Double): Option[Point] = {
     def floor(d: Double): Int = { Math.floor(d).toInt }
 
     val c = Point(floor(x / tileDim.x), floor(y / tileDim.y))

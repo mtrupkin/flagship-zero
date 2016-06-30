@@ -11,29 +11,15 @@ import scala.util.Random
 /**
   * Created by mtrupkin on 3/22/2016.
   */
-sealed trait GameObj {
-  def position: Point
-}
-
-case class Planet(name: String, position: Point, planetClass: String) extends GameObj
-
-case class Star(name: String, position: Point, starClass: String) extends GameObj
-
-case class Ship(
-  name: String,
-  position: Point,
-  shipClass: String,
-  faction: String,
-  heading: Vect = Vect.Up) extends GameObj
 
 class World {
-  val planet1 = Planet("Earth", Point(0, 0), "M")
-  val star1 = Star("Sol", Point(-30, -30), "G")
-  val ship1 = Ship("Enterprise", Point(0, -15), "explorer", "blue")
-  val ship2 = Ship("Reliant", Point(-30, -30), "science", "green", Vect.Left)
-  val ship3 = Ship("Defiant", Point(30, -30), "military", "red", Vect.Down)
+  val planet1 = Planet("Earth", "M", Point(0, 0))
+  val star1 = Star("Sol", "G", Point(-30, -30))
+  val ship1 = Ship("Enterprise", "explorer", Point(-30, -30))
+  val ship2 = Ship("Reliant", "science", Point(0, -15))
+  val ship3 = Ship("Defiant", "military", Point(30, -30))
 
-  val gameObjects: List[GameObj] = List(planet1, /*star1,*/ ship1, ship2, ship3)
+  val gameObjects: List[Entity] = List(planet1, ship1)
 
   val background: Seq[Tile] = {
     for {
@@ -102,18 +88,18 @@ object Tile {
     "science" -> "ship-3"
   )
 
-  def apply(obj: GameObj): Tile = {
+  def apply(obj: Entity): Tile = {
     var rotate: Option[Int] = None
-    val sprite = obj match {
-      case Planet(_, _, planetClass) => s"${planetSprites(planetClass)}"
-      case Star(_, _, starClass) => s"${starSprites(starClass)}"
-      case Ship(_, _, shipClass, faction, heading) => {
+    val (sprite, scale) = obj match {
+      case Planet(_, subtype, _) => s"${planetSprites(subtype)}" -> 2
+      case Star(_, subtype, _) => s"${starSprites(subtype)}" -> 1
+      case Ship(_, subtype, _, heading, _, _) => {
         rotate = Some((heading.angleRadians*180/Math.PI).toInt)
-        s"${shipSprites(shipClass)}-$faction-x2"
+        s"${shipSprites(subtype)}-gray" -> 2
       }
     }
 
-    val imageView = Oryx.imageView(sprite)
+    val imageView = Oryx.imageView(sprite, scale)
     rotate.map(angle=>imageView.setRotate(angle))
 
     Tile(obj.position, imageView)

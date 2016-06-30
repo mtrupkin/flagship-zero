@@ -4,15 +4,12 @@ import javafx.fxml.FXML
 import javafx.scene.control.{Label, Slider, TextArea}
 import javafx.scene.layout.Pane
 
-import model.{World, WorldBuilder}
+import model.{World}
 import org.mtrupkin.control.ConsoleFx
 import org.mtrupkin.math.Point
 import org.mtrupkin.math.Vect
-import tileset.OryxSet
-
 import scalafx.Includes._
-import scalafx.beans.property.DoubleProperty
-import scalafx.scene.input.KeyCode
+import scalafx.scene.input.{KeyCode, MouseButton}
 import scalafx.scene.input.KeyCode._
 import scalafx.scene.{control => sfxc, input => sfxi, layout => sfxl}
 
@@ -56,6 +53,17 @@ trait Game { self: Controller =>
     }
 
     def handleMouseClicked(event: sfxi.MouseEvent): Unit = {
+      event.button match {
+        case MouseButton.SECONDARY => {
+          for {
+            viewPoint <- console.pixelToTile(event.x.toInt, event.y.toInt)
+          } {
+            val worldPoint = console.viewToWorld(viewPoint)
+            val heading = Vect.toVect(worldPoint, world.ship1.position)
+            world.ship1.heading = heading
+          }
+        }
+      }
     }
 
     def handleMouseExit(event: sfxi.MouseEvent): Unit = {
