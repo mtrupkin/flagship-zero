@@ -7,7 +7,6 @@ import org.mtrupkin.math.Size
 import play.api.libs.json.Json
 
 // Created by mtrupkin on 6/17/2016.
-
 trait Oryx {
   def imageView(sprite: String, scale: Int = 1): ImageView
 }
@@ -19,10 +18,7 @@ trait SpriteSet {
 }
 
 /** Single image containing multiple sprites */
-trait SpriteSheet extends SpriteSet {
-  def spriteSheetDef: SpriteSheetDef
-  def image: Image
-
+class SpriteSheet(val image: Image, val scale: Int, val spriteSheetDef: SpriteSheetDef) extends SpriteSet {
   val spriteNames: Seq[String] = spriteSheetDef.sprites.map(_.name)
 
   val tile = spriteSheetDef.tile * scale
@@ -53,40 +49,47 @@ trait SpriteSheet extends SpriteSet {
   }
 }
 
-class SpriteSheetImpl(val image: Image, val scale: Int, val spriteSheetDef: SpriteSheetDef) extends SpriteSheet
-
 /** Multiple sprites each in its own image */
-trait SpriteSheetSliced extends SpriteSet {
-  def images: Map[String, Image]
+class SpriteSheetSliced(val scale: Int, images: Map[String, Image]) extends SpriteSet {
+  val spriteNames: Seq[String] = images.keys.toSeq
 
   def imageView(sprite: String): ImageView = new ImageView(images(sprite))
 }
 
-
 object SpriteSheet {
+  def loadBaseImage(filename: String): (Image, Size) = {
+    val is = getClass.getResourceAsStream(filename)
+    val image = new Image(is)
+    (image, Size(image.getWidth.toInt, image.getHeight.toInt))
+  }
+
+  def loadImage(filename: String, size: Size, scale: Int): Image = {
+    val is = getClass.getResourceAsStream(filename)
+    new Image(is, size.width * scale, size.height * scale, false, false)
+  }
+
   def scaledSpriteSheets(spriteSheetDef: SpriteSheetDef): Seq[SpriteSet] = {
-    val base = {
-      val is = getClass.getResourceAsStream(spriteSheetDef.filename)
-      new Image(is)
-    }
+    val base = loadBaseImage(spriteSheetDef.filename)
 
     val ss = for {
       scale <- 2 to 5
     } yield {
-      val is = getClass.getResourceAsStream(spriteSheetDef.filename)
-      val width = base.getWidth * scale
-      val height = base.getHeight * scale
-      val image = new Image(is, width, height, false, false)
-
-      new SpriteSheetImpl(image, scale, spriteSheetDef)
+      val image = loadImage(spriteSheetDef.filename, base._2, scale)
+      new SpriteSheet(image, scale, spriteSheetDef)
     }
-    new SpriteSheetImpl(base, 1, spriteSheetDef) :: ss.toList
+    new SpriteSheet(base._1, 1, spriteSheetDef) :: ss.toList
   }
 
   def scaledSpriteSplicedSheets(spriteSheetSlicedDef: SpriteSheetSlicedDef): Seq[SpriteSet] = {
-    for {
+    val q = for {
+      sprite <- spriteSheetSlicedDef.sprites
       scale <- 2 to 5
-    } yield ???
+    } yield {
+      new SpriteSheetSliced()
+      val base = loadBaseImage(s"${spriteSheetSlicedDef.location}${sprite.tile}")
+      sprite.name -> sprite.tile
+    }
+    q
   }
 }
 
