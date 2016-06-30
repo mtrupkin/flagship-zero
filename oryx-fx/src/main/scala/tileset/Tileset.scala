@@ -3,186 +3,133 @@ package tileset
 import javafx.geometry.Rectangle2D
 import javafx.scene.image.{Image, ImageView}
 
+import org.mtrupkin.math.Size
 import play.api.libs.json.Json
 
 // Created by mtrupkin on 6/17/2016.
 
-/**
-  * Individual Sprite
-  *
-  * @param name
-  * @param tile location of upper left corner of sprite by tile id
-  * @param size dimension of sprite in tile units
-  */
-case class SpriteDef(name: String, tile: Int, size: Option[Int])
-case class SpriteSheetDef(name: String, tile: Int)
-
-object SpriteDef {
-  implicit val format = Json.format[SpriteDef]
+trait Oryx {
+  def imageView(sprite: String, scale: Int = 1): ImageView
 }
-
-object SpriteSheetDef {
-  implicit val format = Json.format[SpriteSheetDef]
-}
-
-/**
-  * Image containing sprites
-  *
-  * @param size default sprite dimension in tiles (8x8 pixel units)
-  */
-case class TilesetDef(filename: String, size: Int, width: Int, height: Int, sprites: Seq[SpriteDef])
-case class TilesetSheetDef(filename: String, tileWidth: Int, tileHeight: Int, sprites: Seq[SpriteSheetDef])
-
-object TilesetDef {
-  implicit val format = Json.format[TilesetDef]
-}
-
-object TilesetSheetDef {
-  implicit val format = Json.format[TilesetSheetDef]
-}
-
-/**
-  * Oryx Package Set
-  *
-  * @param tilesets image names that contains sprites
-  */
-case class OryxSetDef(
-  tilesets: List[String],
-  sliced: List[String],
-  sheets: List[String])
-
-object OryxSetDef {
-  implicit val format = Json.format[OryxSetDef]
-}
-
-case class OryxSprite(name: String, startTile: Int, size: Int)
 
 trait SpriteSet {
+  def scale: Int
   def spriteNames: Seq[String]
   def imageView(sprite: String): ImageView
 }
 
-/**
-  * Single image containing multiple sprites
-  */
-class Tileset(image: Image, scale: Int, sprites: Seq[OryxSprite]) extends SpriteSet {
-  val tileSize = 8 * scale
+/** Single image containing multiple sprites */
+trait SpriteSheet extends SpriteSet {
+  def spriteSheetDef: SpriteSheetDef
+  def image: Image
+
+  val spriteNames: Seq[String] = spriteSheetDef.sprites.map(_.name)
+
+  val tile = spriteSheetDef.tile * scale
 
   // sprites per row
-  protected val spriteWidth = Math.round(image.getWidth / tileSize)
+  val spritePerRow = Math.round(image.getWidth / tile.width)
 
-  protected def toViewport(startTile: Int, size: Int): Rectangle2D = {
-    val x = Math.floorMod(startTile, spriteWidth) * tileSize
-    val y = Math.floorDiv(startTile, spriteWidth) * tileSize
+  def toViewport(id: Int): Rectangle2D = {
+    val x = Math.floorMod(id, spritePerRow) * tile.width
+    val y = Math.floorDiv(id, spritePerRow) * tile.height
 
-    new Rectangle2D(x, y, tileSize*size, tileSize*size)
+    new Rectangle2D(x, y, tile.width, tile.height)
   }
 
-  def scaledName(name: String): String = scale match {
-    case 1 => name
-    case x => s"$name-x$x"
-  }
-
-  val spriteNames: Seq[String] = sprites.map(sprite => scaledName(sprite.name))
-
-
-  protected def imageView(startTile: Int, size: Int): ImageView = {
+  def imageView(id: Int): ImageView = {
     val imageView = new ImageView(image)
-    val viewport = toViewport(startTile, size)
+    val viewport = toViewport(id)
     imageView.setViewport(viewport)
 
     imageView
   }
 
-  protected def imageView(sprite: OryxSprite): ImageView = imageView(sprite.startTile, sprite.size)
+  def imageView(sprite: SpriteDef): ImageView = imageView(sprite.tile)
 
   def imageView(sprite: String): ImageView = {
-    val oryxSprite = sprites.find(s => scaledName(s.name) == sprite).get
-    imageView(oryxSprite)
+    val spriteDef = spriteSheetDef.sprites.find(s => s.name == sprite).get
+    imageView(spriteDef)
   }
 }
 
-object Tileset {
-  def tileset(oryxSetName: String, tilesetDef: TilesetDef): Seq[Tileset] = {
-    val filename = s"/$oryxSetName/${tilesetDef.filename}"
-    val sprites = tilesetDef.sprites.map(sprite => {
-      import sprite._
-      OryxSprite(name, tile, size.getOrElse(tilesetDef.size))
-    })
+class SpriteSheetImpl(val image: Image, val scale: Int, val spriteSheetDef: SpriteSheetDef) extends SpriteSheet
 
-    for {
-      scale <- 1 to 5
-    } yield {
-      val is = getClass.getResourceAsStream(filename)
-      val image = new Image(is, tilesetDef.width * scale, tilesetDef.height * scale, false, false)
+/** Multiple sprites each in its own image */
+trait SpriteSheetSliced extends SpriteSet {
+  def images: Map[String, Image]
 
-      new Tileset(image, scale, sprites)
+  def imageView(sprite: String): ImageView = new ImageView(images(sprite))
+}
+
+
+object SpriteSheet {
+  def scaledSpriteSheets(spriteSheetDef: SpriteSheetDef): Seq[SpriteSet] = {
+    val base = {
+      val is = getClass.getResourceAsStream(spriteSheetDef.filename)
+      new Image(is)
     }
+
+    val ss = for {
+      scale <- 2 to 5
+    } yield {
+      val is = getClass.getResourceAsStream(spriteSheetDef.filename)
+      val width = base.getWidth * scale
+      val height = base.getHeight * scale
+      val image = new Image(is, width, height, false, false)
+
+      new SpriteSheetImpl(image, scale, spriteSheetDef)
+    }
+    new SpriteSheetImpl(base, 1, spriteSheetDef) :: ss.toList
+  }
+
+  def scaledSpriteSplicedSheets(spriteSheetSlicedDef: SpriteSheetSlicedDef): Seq[SpriteSet] = {
+    for {
+      scale <- 2 to 5
+    } yield ???
   }
 }
 
-case class OryxSprite(name: String, startTile: Int, size: Int)
-
-case class SheetSprite(name: String, tile: Int,
-  tileWidth: Int, tileHeight: Int,
-  image: Image)
-
-class SheetTileSet(sprites: Seq[SheetSprite]) extends SpriteSet {
-
-}
-
-case class SlicedSprite(name: String, image: Image)
-
-class SlicedTileSet(sprites: Seq[SlicedSprite]) extends SpriteSet {
-  val spriteNames: Seq[String] = sprites.map(_.name)
-
-  def imageView(sprite: String): ImageView = {
-    val oryxSprite = sprites.find(s => s.name == sprite).get
-    new ImageView(oryxSprite.image)
+class OryxImpl(scaledSpriteSets: Map[Int, Seq[SpriteSet]]) extends Oryx {
+  def imageView(sprite: String, scale: Int): ImageView = {
+    val spriteSets = scaledSpriteSets(scale)
+    val spriteSet = spriteSets.find(set => set.spriteNames.exists(_ == sprite)).get
+    spriteSet.imageView(sprite)
   }
 }
 
-class OryxSet(
-  oryxSetName: String,
-  tilesets: Seq[SpriteSet]) {
-  val spriteNames: Seq[String] = tilesets.flatMap(_.spriteNames)
-
-  def imageView(sprite: String): ImageView = {
-    val tileset = tilesets.find(tileset => tileset.spriteNames.exists(_ == sprite)).get
-    tileset.imageView(sprite)
-  }
-}
-
-object OryxSet {
-  // smallest sprite is 8x8 pixels (aka tile)
+object Oryx extends Oryx {
+  // smallest sprite is 8x8 pixels
   //
-  // sprites are in multiple of tile sizes
+  // sprites are in multiple of smallest size
   // 8x8, 16x16, 24x24, 32x32, 40x40
 
-  def load(oryxSetName: String): OryxSet = {
+  val spriteSetNames = List("oryx_16-bit_sci-fi")
+  val spriteSets = spriteSetNames.flatMap(load(_))
+
+  def load(oryxSetName: String): Seq[SpriteSet] = {
     val isOryxSetDef = getClass.getResourceAsStream(s"/$oryxSetName.json")
     val oryxSetDef = Json.parse(isOryxSetDef).as[OryxSetDef]
 
-    val tilesets = oryxSetDef.tilesets.flatMap(tilesetName => {
-      val isTilesetDef = getClass.getResourceAsStream(s"/$oryxSetName/$tilesetName.json")
-      val tilesetDef = Json.parse(isTilesetDef).as[TilesetDef]
-      Tileset.tileset(oryxSetName, tilesetDef)
+    val sheetSet = oryxSetDef.sheets.flatMap(sheetSetName => {
+      val isDef = getClass.getResourceAsStream(s"/$oryxSetName/$sheetSetName.json")
+      val spriteSheetDef = Json.parse(isDef).as[SpriteSheetDef]
+      SpriteSheet.scaledSpriteSheets(spriteSheetDef)
     })
 
-    new OryxSet(oryxSetName, tilesets)
+    val slicedSet = oryxSetDef.sliced.flatMap(slicedSetName => {
+      val isDef = getClass.getResourceAsStream(s"/$oryxSetName/$slicedSetName.json")
+      val spriteSheetDef = Json.parse(isDef).as[SpriteSlicedDef]
+//      SpriteSheet.scaledSpriteSet(oryxSetName, spriteSheetDef)
+      ???
+    })
+
+    sheetSet ++ slicedSet
+  }
+
+  def imageView(sprite: String, scale: Int): ImageView = {
+    val spriteSet = spriteSets.find(set => set.spriteNames.exists(_ == sprite)).get
+    spriteSet.imageView(sprite, scale)
   }
 }
 
-object Oryx {
-  protected val oryxSetNames = List(
-    "oryx_16-bit_sci-fi"
-    ,"oryx_lofi_horror"
-  )
-
-  protected val oryxSets: Seq[OryxSet] = oryxSetNames.map(OryxSet.load(_))
-
-  def imageView(sprite: String): ImageView = {
-    val oryxSet = oryxSets.find(oryxSet => oryxSet.spriteNames.exists(_ == sprite)).get
-    oryxSet.imageView(sprite)
-  }
-}

@@ -13,6 +13,8 @@ case class Size(width: Int, height: Int) {
     } f(Point(x, y))
   }
 
+  def *(scale: Int): Size = Size(width * scale, height *scale)
+
   def in(p: Point): Boolean = (p.x >= 0 && p.y >= 0 && p.x < width && p.y < height)
 }
 
