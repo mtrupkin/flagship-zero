@@ -19,17 +19,24 @@ class World {
   val ship2 = Ship("Reliant", "science", Point(0, -15))
   val ship3 = Ship("Defiant", "military", Point(30, -30))
 
-  val gameObjects: List[Entity] = List(planet1, ship1)
+  val gameObjects: List[Entity] = List(ship1)
 
   val background: Seq[Tile] = {
-    for {
+    val q = for {
       i <- 1 to 5
       rnd = Random.nextInt(6) + 1
     } yield {
       val x = Random.nextInt(80) - 40
       val y = Random.nextInt(80) - 40
-      Tile(Point(x, y), Oryx.imageView(s"bg-$rnd"))
+      Tile(Point(x, y), Oryx.imageView(s"bg-$rnd"), 1)
     }
+    val e = 40
+    q ++ List(
+      Tile(Point(-e, e), Oryx.imageView(s"bg-1"),1),
+      Tile(Point(e, e), Oryx.imageView(s"bg-1"),1),
+      Tile(Point(-e, -e), Oryx.imageView(s"bg-1"),1),
+      Tile(Point(e, -e), Oryx.imageView(s"bg-1"),1)
+    )
   }
 
   def objects: Seq[Tile] = {
@@ -39,7 +46,7 @@ class World {
   def layers: Seq[Layer] = List(background).map(Tile.toLayer(_))
 }
 
-case class Tile(position: Point, imageView: ImageView)
+case class Tile(position: Point, imageView: ImageView, size: Int)
 
 object Tile {
   // M earth-like
@@ -90,19 +97,19 @@ object Tile {
 
   def apply(obj: Entity): Tile = {
     var rotate: Option[Int] = None
-    val (sprite, scale) = obj match {
-      case Planet(_, subtype, _) => s"${planetSprites(subtype)}" -> 2
-      case Star(_, subtype, _) => s"${starSprites(subtype)}" -> 1
+    val (sprite, imageScale, tileScale) = obj match {
+      case Planet(_, subtype, _) => (s"${planetSprites(subtype)}", 1, 3)
+      case Star(_, subtype, _) => (s"${starSprites(subtype)}", 1, 3)
       case Ship(_, subtype, _, heading, _, _) => {
         rotate = Some((heading.angleRadians*180/Math.PI).toInt)
-        s"${shipSprites(subtype)}-gray" -> 2
+        (s"${shipSprites(subtype)}-gray", 2, 6)
       }
     }
 
-    val imageView = Oryx.imageView(sprite, scale)
+    val imageView = Oryx.imageView(sprite, imageScale)
     rotate.map(angle=>imageView.setRotate(angle))
 
-    Tile(obj.position, imageView)
+    Tile(obj.position, imageView, tileScale)
   }
 
   def toLayer(tiles: Seq[Tile]): Layer = {

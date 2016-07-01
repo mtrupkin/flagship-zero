@@ -7,14 +7,18 @@ case class Vect(x: Int, y: Int) {
   def +(v: Vect): Vect = Vect(x + v.x, y + v.y)
   def -(v: Vect): Vect = Vect(x - v.x, y - v.y)
 
-  def angleRadians: Double = (Math.PI/2) - Math.atan2(y, x)
+  import Math._
+  def angleRadians: Double = (PI/2) - atan2(y, x)
+  def normal: Double = sqrt(x*x + y*y)
 }
 
 object Vect {
-  def toVect(p1: Point, p0: Point): Vect = Vect(p1.x - p0.x, p1.y - p0.y)
-
   val Up = Vect(0, 1)
   val Down = Vect(0, -1)
   val Left = Vect(-1, 0)
   val Right = Vect(1, 0)
+
+  // conversions
+  implicit def toTuple(v: Vect): (Int, Int) = (v.x, v.y)
+  implicit def fromTuple(t: (Int, Int)): Vect = Vect(t._1, t._2)
 }

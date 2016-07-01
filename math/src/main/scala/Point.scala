@@ -6,6 +6,7 @@ package org.mtrupkin.math
 case class Point(x: Int, y: Int) {
   def +(v: Vect): Point = Point(x + v.x, y + v.y)
   def -(v: Vect): Point = Point(x - v.x, y - v.y)
+  def -(p: Point): Vect = Vect(x - p.x, y - p.y)
 
   def neighbors(r: Int = 1): Seq[Point] = {
     for {
@@ -20,6 +21,6 @@ object Point {
   val Origin: Point = Point(0, 0)
 
   // conversions
-  implicit def pointToSize(p: Point): Size = Size(p.x, p.y)
-  implicit def pointToTuple(p: Point): (Double, Double) = (p.x, p.y)
+  implicit def toTuple(p: Point): (Int, Int) = (p.x, p.y)
+  implicit def fromTuple(t: (Int, Int)): Point = Point(t._1, t._2)
 }

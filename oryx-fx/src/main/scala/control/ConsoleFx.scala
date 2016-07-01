@@ -1,44 +1,50 @@
 package org.mtrupkin.control
 import javafx.scene.image.ImageView
-import javafx.scene.layout.Pane
+import javafx.scene.layout.{HBox, Pane, StackPane}
 
 import control.Layer
-import org.mtrupkin.math.{Point, Size}
+import org.mtrupkin.math.{Point, Size, Vect}
 
 /**
   * Created by mtrupkin on 3/22/2016.
   */
-class ConsoleFx(val tileSize: Size = Size(80, 80)) extends Pane {
+trait ConsoleFx extends Pane {
+  /** position is center of image */
+  def drawEntity(world: Point, imageView: ImageView, size: Int): Unit
+  /** position is upper left corner of image */
+//  def drawTile(world: Point, imageView: ImageView): Unit
+
+  def draw(layers: Seq[Layer]): Unit
+  def screenToWorld(x: Double, y: Double): Point
+}
+
+class ConsoleFxImpl(val worldSize: Size = Size(81, 81)) extends ConsoleFx {
   // size of individual tile
   var tileDim = Size(8, 8)
+  val screenSize = Size(worldSize.width * tileDim.width, worldSize.height * tileDim.height)
 
-  var cursor: Option[Point] = None
+  setMinSize(screenSize.width, screenSize.height)
 
-  protected val controlSize = tileToPixel(tileSize)
-  // protected val controlSizeHalf = Size(controlSize.x/2, controlSize.y/2)
-  protected val tileSizeHalf = Size(tileSize.x/2, tileSize.y/2)
+  def drawEntity(world: Point, imageView: ImageView, size: Int): Unit = {
+    val screen = worldToScreen(world)
+    val adj = tileDim*(size/2)
 
-  setMinSize(controlSize.x, controlSize.y)
-
-  def worldToView(world: Point): Point = {
-    val p = Point(world.x + tileSizeHalf.width, tileSizeHalf.height - world.y)
-    p
+    drawScreen(screen - adj, imageView)
   }
 
-  def viewToWorld(view: Point): Point = {
-    val p = Point(view.x - tileSizeHalf.width, tileSizeHalf.height - view.y)
-    p
+  def drawTile(world: Point, imageView: ImageView): Unit = {
+    val screen = worldToScreen(world)
+    drawScreen(screen, imageView)
   }
 
-  def drawWorld(worldPoint: Point, imageView: ImageView): Unit = {
-    val viewPoint = worldToView(worldPoint)
-    drawView(viewPoint, imageView)
-  }
-
-  def drawView(tilePoint: Point, imageView: ImageView): Unit = {
-    val p = tileToPixel(tilePoint)
-    imageView.relocate(p.x, p.y)
-    getChildren.add(imageView)
+  def drawScreen(screen: Point, imageView: ImageView): Unit = {
+    val box = new StackPane
+    box.setStyle("-fx-border-width: 1; -fx-border-color: blue")
+    box.relocate(screen.x, screen.y)
+    box.getChildren.add(imageView)
+//  imageView.relocate(p.x, p.y)
+//  getChildren.add(imageView)
+    getChildren.add(box)
   }
 
   def draw(layers: Seq[Layer]): Unit = {
@@ -49,27 +55,48 @@ class ConsoleFx(val tileSize: Size = Size(80, 80)) extends Pane {
     } draw(layer)
   }
 
-  protected def draw(layer: Layer): Unit = {
-    tileSize.foreach(viewPoint => {
-      val worldPoint = viewToWorld(viewPoint)
+  def draw(layer: Layer): Unit = {
+    worldSize.foreach(viewPoint => {
+      val worldPoint = Coordinates.screenToCartesian(viewPoint, worldSize)
+      val screenPoint = worldToScreen(worldPoint)
       for {
         imageView <- layer(worldPoint)
-      } drawView(viewPoint, imageView)
+      } drawScreen(screenPoint, imageView)
     })
   }
 
-  def updateCursor(x: Double, y: Double): Unit = {
-    cursor = pixelToTile(x, y)
+  def worldToScreen(world: Point): Point = {
+    val p = Coordinates.cartesianToScreen(world, worldSize)
+    val screen = Point(p.x * tileDim.width, p.y * tileDim.height)
+    screen
   }
 
-  def pixelToTile(x: Double, y: Double): Option[Point] = {
-    def floor(d: Double): Int = { Math.floor(d).toInt }
+  def screenToWorld(x: Double, y: Double): Point = {
+    implicit def toInt(d: Double): Int = { Math.floor(d).toInt }
+    val screen = Point(x, y)
+    val p = Coordinates.screenToCartesian(screen, screenSize)
 
-    val c = Point(floor(x / tileDim.x), floor(y / tileDim.y))
-    if (tileSize.in(c)) Some(c) else None
+    val world = Point(p.x / tileDim.width, p.y / tileDim.height)
+    world
+  }
+}
+
+object Coordinates {
+  // converts coordinates with origin in upper left to
+  // coordinates with origin in center
+  def screenToCartesian(p: Point, size: Size): Point = {
+    val (width, height) = (size.width/2, size.height/2)
+    Point(p.x - width, height - p.y)
   }
 
-  protected def tileToPixel(p: Point): Point = {
-    Point(p.x * tileDim.x, p.y * tileDim.y)
+  // converts coordinates with origin in center to
+  // coordinates with origin in upper left
+  def cartesianToScreen(p: Point, size: Size): Point = {
+    val (width, height) = (size.width/2, size.height/2)
+    Point(p.x + width, height - p.y)
   }
+}
+
+object ConsoleFx {
+  def apply(): ConsoleFx = new ConsoleFxImpl()
 }

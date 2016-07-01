@@ -4,10 +4,11 @@ import javafx.fxml.FXML
 import javafx.scene.control.{Label, Slider, TextArea}
 import javafx.scene.layout.Pane
 
-import model.{World}
+import model.World
 import org.mtrupkin.control.ConsoleFx
-import org.mtrupkin.math.Point
-import org.mtrupkin.math.Vect
+import org.mtrupkin.math.{Point, Vect}
+import tileset.Oryx
+
 import scalafx.Includes._
 import scalafx.scene.input.{KeyCode, MouseButton}
 import scalafx.scene.input.KeyCode._
@@ -22,7 +23,7 @@ trait Game { self: Controller =>
     val name = "Game"
 
     @FXML var consolePane: Pane = _
-    val console = new ConsoleFx()
+    val console = ConsoleFx()
 
     def initialize(): Unit = {
       new sfxl.Pane(consolePane) {
@@ -35,6 +36,7 @@ trait Game { self: Controller =>
         onMouseClicked = (e: sfxi.MouseEvent) => handleMouseClicked(e)
         onMouseMoved = (e: sfxi.MouseEvent) => handleMouseMove(e)
         onMouseExited = (e: sfxi.MouseEvent) => handleMouseExit(e)
+        onMouseDragged = (e: sfxi.MouseEvent) => handleMouseDragged(e)
       }
 
       consolePane.getChildren.clear()
@@ -45,30 +47,29 @@ trait Game { self: Controller =>
 
     override def update(elapsed: Int): Unit = {
       console.draw(world.layers)
-      world.objects.foreach(tile => console.drawWorld(tile.position, tile.imageView))
+      world.objects.foreach(tile => console.drawEntity(tile.position, tile.imageView, tile.size))
+      console.drawEntity(cursor, Oryx.imageView(s"bg-1"), 1)
     }
 
-    def handleMouseMove(mouseEvent: sfxi.MouseEvent): Unit = {
-      console.updateCursor(mouseEvent.x, mouseEvent.y)
+    def handleMouseDragged(event: sfxi.MouseEvent): Unit = {
+      if (event.isSecondaryButtonDown) {
+        cursor = console.screenToWorld(event.x, event.y)
+        val heading = cursor - world.ship1.position
+        world.ship1.heading = heading
+      }
+    }
+
+    var cursor = Point.Origin
+
+    def handleMouseMove(event: sfxi.MouseEvent): Unit = {
+      cursor = console.screenToWorld(event.x, event.y)
     }
 
     def handleMouseClicked(event: sfxi.MouseEvent): Unit = {
-      event.button match {
-        case MouseButton.SECONDARY => {
-          for {
-            viewPoint <- console.pixelToTile(event.x.toInt, event.y.toInt)
-          } {
-            val worldPoint = console.viewToWorld(viewPoint)
-            val heading = Vect.toVect(worldPoint, world.ship1.position)
-            world.ship1.heading = heading
-          }
-        }
-      }
     }
 
     def handleMouseExit(event: sfxi.MouseEvent): Unit = {
     }
-
 
     def handleKeyPressed(event: sfxi.KeyEvent): Unit = {
       event.consume()
