@@ -9,32 +9,27 @@ import org.mtrupkin.math.{Point, Size, Vect}
   * Created by mtrupkin on 3/22/2016.
   */
 trait ConsoleFx extends Pane {
-  /** position is center of image */
-  def drawEntity(world: Point, imageView: ImageView, size: Int): Unit
-  /** position is upper left corner of image */
-//  def drawTile(world: Point, imageView: ImageView): Unit
+  /** position is in world coordinates and is in center of image */
+  def draw(p: Point, size: Int, imageView: ImageView): Unit
 
-  def draw(layers: Seq[Layer]): Unit
+  /** convert from screen pixels coordinates to world coordinates */
   def screenToWorld(x: Double, y: Double): Point
 }
 
-class ConsoleFxImpl(val worldSize: Size = Size(81, 81)) extends ConsoleFx {
-  // size of individual tile
-  var tileDim = Size(8, 8)
-  val screenSize = Size(worldSize.width * tileDim.width, worldSize.height * tileDim.height)
+class ConsoleFxImpl(val screenSize: Size = Size(640, 640)) extends ConsoleFx {
+  // size of individual tile in pixels
+  var tileSize = Size(8, 8)
+  val worldSize = Size(screenSize.width / tileSize.width, screenSize.height / tileSize.height)
 
   setMinSize(screenSize.width, screenSize.height)
 
-  def drawEntity(world: Point, imageView: ImageView, size: Int): Unit = {
-    val screen = worldToScreen(world)
-    val adj = tileDim*(size/2)
+  val coordinates = new CoordinateConverter(screenSize, worldSize)
+
+  def draw(p: Point, size: Int, imageView: ImageView): Unit = {
+    val screen = worldToScreen(p)
+    val adj = tileSize*(size/2)
 
     drawScreen(screen - adj, imageView)
-  }
-
-  def drawTile(world: Point, imageView: ImageView): Unit = {
-    val screen = worldToScreen(world)
-    drawScreen(screen, imageView)
   }
 
   def drawScreen(screen: Point, imageView: ImageView): Unit = {
@@ -47,54 +42,38 @@ class ConsoleFxImpl(val worldSize: Size = Size(81, 81)) extends ConsoleFx {
     getChildren.add(box)
   }
 
-  def draw(layers: Seq[Layer]): Unit = {
-    getChildren.clear()
-
-    for {
-      layer <- layers
-    } draw(layer)
-  }
-
-  def draw(layer: Layer): Unit = {
-    worldSize.foreach(viewPoint => {
-      val worldPoint = Coordinates.screenToCartesian(viewPoint, worldSize)
-      val screenPoint = worldToScreen(worldPoint)
-      for {
-        imageView <- layer(worldPoint)
-      } drawScreen(screenPoint, imageView)
-    })
-  }
-
   def worldToScreen(world: Point): Point = {
-    val p = Coordinates.cartesianToScreen(world, worldSize)
-    val screen = Point(p.x * tileDim.width, p.y * tileDim.height)
+    val p = coordinates.toScreen(world)
+    val screen = Point(p.x * tileSize.width, p.y * tileSize.height)
     screen
   }
 
   def screenToWorld(x: Double, y: Double): Point = {
     implicit def toInt(d: Double): Int = { Math.floor(d).toInt }
     val screen = Point(x, y)
-    val p = Coordinates.screenToCartesian(screen, screenSize)
+    val p = coordinates.toCartesian(screen)
 
-    val world = Point(p.x / tileDim.width, p.y / tileDim.height)
+    val world = Point(p.x / tileSize.width, p.y / tileSize.height)
     world
   }
 }
 
-object Coordinates {
+class CoordinateConverter(val screenSize: Size, val quadrantSize: Size) {
+  val screenSize2 = screenSize / 2
+  val (screenWidth2, screenHeight2) = screenSize2
+  val scale: Vect = Vect(quadrantSize.width/screenWidth2, quadrantSize.height/screenHeight2)
+
   // converts coordinates with origin in upper left to
   // coordinates with origin in center
-  def screenToCartesian(p: Point, size: Size): Point = {
-    val (width, height) = (size.width/2, size.height/2)
-    Point(p.x - width, height - p.y)
+  def toCartesian(p: Point): Point = {
+    val p0 = p * scale
+
+    Point(p0.x - screenWidth2, screenHeight2 - p0.y)
   }
 
   // converts coordinates with origin in center to
   // coordinates with origin in upper left
-  def cartesianToScreen(p: Point, size: Size): Point = {
-    val (width, height) = (size.width/2, size.height/2)
-    Point(p.x + width, height - p.y)
-  }
+  def toScreen(p: Point): Point = Point(p.x + screenWidth2, screenHeight2 - p.y)
 }
 
 object ConsoleFx {

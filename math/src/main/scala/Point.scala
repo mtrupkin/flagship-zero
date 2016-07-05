@@ -4,8 +4,8 @@ package org.mtrupkin.math
   * Created by mtrupkin on 3/22/2016.
   */
 case class Point(x: Int, y: Int) {
-  def +(v: Vect): Point = Point(x + v.x, y + v.y)
   def -(v: Vect): Point = Point(x - v.x, y - v.y)
+  def *(v: Vect): Point = Point(x * v.x, y * v.y)
   def -(p: Point): Vect = Vect(x - p.x, y - p.y)
 
   def neighbors(r: Int = 1): Seq[Point] = {

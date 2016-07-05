@@ -46,9 +46,9 @@ trait Game { self: Controller =>
     }
 
     override def update(elapsed: Int): Unit = {
-      console.draw(world.layers)
-      world.objects.foreach(tile => console.drawEntity(tile.position, tile.imageView, tile.size))
-      console.drawEntity(cursor, Oryx.imageView(s"bg-1"), 1)
+//      console.draw(world.layers)
+//      world.objects.foreach(tile => console.draw(tile.position, tile.size, tile.imageView))
+      console.draw(cursor, 1, Oryx.imageView(s"bg-1"))
     }
 
     def handleMouseDragged(event: sfxi.MouseEvent): Unit = {

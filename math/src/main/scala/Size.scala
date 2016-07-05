@@ -13,7 +13,8 @@ case class Size(width: Int, height: Int) {
     } f(Point(x, y))
   }
 
-  def *(scale: Int): Size = Size(width * scale, height *scale)
+  def *(scale: Int): Size = Size(width * scale, height * scale)
+  def /(scale: Int): Size = Size(width / scale, height / scale)
   def in(p: Point): Boolean = (p.x >= 0 && p.y >= 0 && p.x < width && p.y < height)
 
   import Math._
@@ -29,4 +30,5 @@ object Size {
   implicit def fromTuple(t: (Int, Int)): Size = Size(t._1, t._2)
 
   implicit def toVect(s: Size): Vect = Vect(s.width, s.height)
+  implicit def toPoint(s: Size): Point = Point(s.width, s.height)
 }
