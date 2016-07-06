@@ -1,79 +1,66 @@
 package org.mtrupkin.control
+
+import scalafx.scene.canvas.Canvas
 import javafx.scene.image.ImageView
 import javafx.scene.layout.{HBox, Pane, StackPane}
 
-import control.Layer
 import org.mtrupkin.math.{Point, Size, Vect}
+
+import scalafx.scene.paint.Color
 
 /**
   * Created by mtrupkin on 3/22/2016.
   */
 trait ConsoleFx extends Pane {
+  /** prepare to draw */
+  def clear(): Unit
+
   /** position is in world coordinates and is in center of image */
-  def draw(p: Point, size: Int, imageView: ImageView): Unit
+  def draw(p: Point, size: Size, imageView: ImageView): Unit
 
   /** convert from screen pixels coordinates to world coordinates */
   def screenToWorld(x: Double, y: Double): Point
+
+  def drawVect(p: Point, v: Vect): Unit
 }
 
 class ConsoleFxImpl(val screenSize: Size = Size(640, 640)) extends ConsoleFx {
   // size of individual tile in pixels
-  var tileSize = Size(8, 8)
-  val worldSize = Size(screenSize.width / tileSize.width, screenSize.height / tileSize.height)
+  var tileSize2 = Size(8, 8)
+  val worldSize = Size(screenSize.width / tileSize2.width, screenSize.height / tileSize2.height)
+  val canvas = new Canvas(screenSize.width, screenSize.height)
+  val gc = canvas.graphicsContext2D
+  gc.stroke = Color.Blue
 
   setMinSize(screenSize.width, screenSize.height)
 
-  val coordinates = new CoordinateConverter(screenSize, worldSize)
+  val converter = CoordinateConverter(screenSize, worldSize)
+  import converter._
 
-  def draw(p: Point, size: Int, imageView: ImageView): Unit = {
-    val screen = worldToScreen(p)
-    val adj = tileSize*(size/2)
+  def clear(): Unit = {
+    getChildren.clear()
+    getChildren.add(canvas)
+  }
+
+  def drawVect(p: Point, v: Vect): Unit = {
+    val p0 = toScreen(p)
+    val p1 = toScreen(p + v)
+    gc.strokeLine(p0.x, p0.y, p1.x, p1.y)
+  }
+
+  def draw(p: Point, size: Size, imageView: ImageView): Unit = {
+    val screen = toScreen(p)
+    val adj = toScreen(size)
 
     drawScreen(screen - adj, imageView)
   }
 
-  def drawScreen(screen: Point, imageView: ImageView): Unit = {
-    val box = new StackPane
-    box.setStyle("-fx-border-width: 1; -fx-border-color: blue")
-    box.relocate(screen.x, screen.y)
-    box.getChildren.add(imageView)
-//  imageView.relocate(p.x, p.y)
-//  getChildren.add(imageView)
-    getChildren.add(box)
+  def drawScreen(p: Point, imageView: ImageView): Unit = {
+    imageView.relocate(p.x, p.y)
+    getChildren.add(imageView)
   }
 
-  def worldToScreen(world: Point): Point = {
-    val p = coordinates.toScreen(world)
-    val screen = Point(p.x * tileSize.width, p.y * tileSize.height)
-    screen
-  }
-
-  def screenToWorld(x: Double, y: Double): Point = {
-    implicit def toInt(d: Double): Int = { Math.floor(d).toInt }
-    val screen = Point(x, y)
-    val p = coordinates.toCartesian(screen)
-
-    val world = Point(p.x / tileSize.width, p.y / tileSize.height)
-    world
-  }
-}
-
-class CoordinateConverter(val screenSize: Size, val quadrantSize: Size) {
-  val screenSize2 = screenSize / 2
-  val (screenWidth2, screenHeight2) = screenSize2
-  val scale: Vect = Vect(quadrantSize.width/screenWidth2, quadrantSize.height/screenHeight2)
-
-  // converts coordinates with origin in upper left to
-  // coordinates with origin in center
-  def toCartesian(p: Point): Point = {
-    val p0 = p * scale
-
-    Point(p0.x - screenWidth2, screenHeight2 - p0.y)
-  }
-
-  // converts coordinates with origin in center to
-  // coordinates with origin in upper left
-  def toScreen(p: Point): Point = Point(p.x + screenWidth2, screenHeight2 - p.y)
+  def screenToWorld(x: Double, y: Double): Point = toWorld(Point(x, y))
 }
 
 object ConsoleFx {

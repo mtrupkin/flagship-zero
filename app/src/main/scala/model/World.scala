@@ -96,12 +96,14 @@ object Tile {
   )
 
   def apply(obj: Entity): Tile = {
-    var rotate: Option[Int] = None
+    def toDegrees(radians: Double): Double = -radians*180/Math.PI
+
+    var rotate: Option[Double] = None
     val (sprite, imageScale, tileScale) = obj match {
       case Planet(_, subtype, _) => (s"${planetSprites(subtype)}", 1, 3)
       case Star(_, subtype, _) => (s"${starSprites(subtype)}", 1, 3)
       case Ship(_, subtype, _, heading, _, _) => {
-        rotate = Some((heading.angleRadians*180/Math.PI).toInt)
+        rotate = Some(toDegrees(heading.angle))
         (s"${shipSprites(subtype)}-gray", 2, 6)
       }
     }

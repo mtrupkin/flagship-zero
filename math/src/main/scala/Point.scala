@@ -3,9 +3,11 @@ package org.mtrupkin.math
 /**
   * Created by mtrupkin on 3/22/2016.
   */
-case class Point(x: Int, y: Int) {
+case class Point(x: Double, y: Double) {
+  def +(v: Vect): Point = Point(x + v.x, y + v.y)
   def -(v: Vect): Point = Point(x - v.x, y - v.y)
   def *(v: Vect): Point = Point(x * v.x, y * v.y)
+  def /(v: Vect): Point = Point(x / v.x, y / v.y)
   def -(p: Point): Vect = Vect(x - p.x, y - p.y)
 
   def neighbors(r: Int = 1): Seq[Point] = {
@@ -21,6 +23,9 @@ object Point {
   val Origin: Point = Point(0, 0)
 
   // conversions
-  implicit def toTuple(p: Point): (Int, Int) = (p.x, p.y)
-  implicit def fromTuple(t: (Int, Int)): Point = Point(t._1, t._2)
+  implicit def toTuple(p: Point): (Double, Double) = (p.x, p.y)
+  implicit def fromTuple(t: (Double, Double)): Point = Point(t._1, t._2)
+
+
+  implicit def toSize(p: Point): Size = Size(p.x.toInt, p.y.toInt)
 }

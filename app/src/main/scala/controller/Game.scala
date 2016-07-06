@@ -6,7 +6,7 @@ import javafx.scene.layout.Pane
 
 import model.World
 import org.mtrupkin.control.ConsoleFx
-import org.mtrupkin.math.{Point, Vect}
+import org.mtrupkin.math.{Point, Size, Vect}
 import tileset.Oryx
 
 import scalafx.Includes._
@@ -46,16 +46,18 @@ trait Game { self: Controller =>
     }
 
     override def update(elapsed: Int): Unit = {
-//      console.draw(world.layers)
-//      world.objects.foreach(tile => console.draw(tile.position, tile.size, tile.imageView))
-      console.draw(cursor, 1, Oryx.imageView(s"bg-1"))
+      console.clear()
+      world.objects.foreach(tile => console.draw(tile.position, Size(tile.size, tile.size), tile.imageView))
+      console.draw(cursor, Size(1, 1), Oryx.imageView(s"bg-1"))
+      console.drawVect(world.ship1.position, world.ship1.heading)
     }
 
     def handleMouseDragged(event: sfxi.MouseEvent): Unit = {
       if (event.isSecondaryButtonDown) {
         cursor = console.screenToWorld(event.x, event.y)
-        val heading = cursor - world.ship1.position
-        world.ship1.heading = heading
+        val heading0 = cursor - world.ship1.position
+
+        world.ship1.clipHeading(heading0)
       }
     }
 
