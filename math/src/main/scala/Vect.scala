@@ -7,6 +7,10 @@ case class Vect(x: Double, y: Double) {
   def +(v: Vect): Vect = Vect(x + v.x, y + v.y)
   def -(v: Vect): Vect = Vect(x - v.x, y - v.y)
 
+  def *(scale: Double): Vect = Vect(x * scale, y * scale)
+  def /(scale: Double): Vect = Vect(x / scale, y / scale)
+  def normal(length: Double): Vect = (this/this.normal) * length
+
   def unary_- = Vect(-x, -y)
 
   import Math._

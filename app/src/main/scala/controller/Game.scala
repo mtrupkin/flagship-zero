@@ -22,6 +22,8 @@ trait Game { self: Controller =>
   class GameController(var world: World) extends ControllerState {
     val name = "Game"
 
+    val shipMovement = new ShipMovement(world.ship1)
+
     @FXML var consolePane: Pane = _
     val console = ConsoleFx()
 
@@ -49,15 +51,13 @@ trait Game { self: Controller =>
       console.clear()
       world.objects.foreach(tile => console.draw(tile.position, Size(tile.size, tile.size), tile.imageView))
       console.draw(cursor, Size(1, 1), Oryx.imageView(s"bg-1"))
-      console.drawVect(world.ship1.position, world.ship1.heading)
+      console.drawVect(world.ship1.position, shipMovement.heading)
     }
 
     def handleMouseDragged(event: sfxi.MouseEvent): Unit = {
       if (event.isSecondaryButtonDown) {
         cursor = console.screenToWorld(event.x, event.y)
-        val heading0 = cursor - world.ship1.position
-
-        world.ship1.clipHeading(heading0)
+        shipMovement.move(cursor)
       }
     }
 

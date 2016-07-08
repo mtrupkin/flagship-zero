@@ -8,13 +8,11 @@ trait CoordinateConverter {
     * coordinates with origin in center
     */
   def toWorld(p: Point): Point
-  def toWorld(size: Size): Size
 
   /** converts coordinates with origin in center to
     * coordinates with origin in upper left
     */
   def toScreen(p: Point): Point
-  def toScreen(size: Size): Size
 }
 
 class CoordinateConverterImpl(val screen: Size, val quadrant: Size)
@@ -37,9 +35,6 @@ class CoordinateConverterImpl(val screen: Size, val quadrant: Size)
     val p0 = p * scale
     Point(p0.x + width, height - p0.y)
   }
-
-  def toWorld(size: Size): Size = size / scale
-  def toScreen(size: Size): Size = size * scale
 }
 
 object CoordinateConverter {

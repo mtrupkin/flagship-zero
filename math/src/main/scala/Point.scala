@@ -28,4 +28,5 @@ object Point {
 
 
   implicit def toSize(p: Point): Size = Size(p.x.toInt, p.y.toInt)
+  implicit def toVect(p: Point): Vect = Vect(p.x, p.y)
 }

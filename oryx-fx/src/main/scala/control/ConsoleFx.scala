@@ -24,25 +24,26 @@ trait ConsoleFx extends Pane {
   def drawVect(p: Point, v: Vect): Unit
 }
 
-class ConsoleFxImpl(val screenSize: Size = Size(640, 640)) extends ConsoleFx {
+class ConsoleFxImpl(val screen: Size = Size(640, 640)) extends ConsoleFx {
   // size of individual tile in pixels
   var tileSize2 = Size(8, 8)
-  val worldSize = Size(screenSize.width / tileSize2.width, screenSize.height / tileSize2.height)
-  val canvas = new Canvas(screenSize.width, screenSize.height)
+  val worldSize = Size(screen.width / tileSize2.width, screen.height / tileSize2.height)
+  val canvas = new Canvas(screen.width, screen.height)
   val gc = canvas.graphicsContext2D
-  gc.stroke = Color.Blue
+  setMinSize(screen.width, screen.height)
 
-  setMinSize(screenSize.width, screenSize.height)
-
-  val converter = CoordinateConverter(screenSize, worldSize)
+  val converter = CoordinateConverter(screen, worldSize)
   import converter._
 
   def clear(): Unit = {
+    gc.clearRect(0, 0, screen.width, screen.height)
     getChildren.clear()
     getChildren.add(canvas)
   }
 
   def drawVect(p: Point, v: Vect): Unit = {
+    gc.stroke = Color.Blue
+    gc.lineWidth = 4
     val p0 = toScreen(p)
     val p1 = toScreen(p + v)
     gc.strokeLine(p0.x, p0.y, p1.x, p1.y)
