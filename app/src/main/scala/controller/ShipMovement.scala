@@ -4,7 +4,6 @@ import model.Ship
 import org.mtrupkin.math.Vect
 
 class ShipMovement(ship: Ship) {
-  var speed = 0.0
   var heading: Vect = ship.heading
 
   def move(cursor: Vect): Unit = {

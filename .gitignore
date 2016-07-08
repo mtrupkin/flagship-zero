@@ -20,6 +20,9 @@ project/plugins/project/
 .idea/
 .history
 
+# Windows
+Thumbs.db
+
 # App
 /save/
 oryx-fx/src/main/resources/oryx_lofi_horror/**/*.png

@@ -11,15 +11,21 @@ import scala.util.Random
 /**
   * Created by mtrupkin on 3/22/2016.
   */
+trait World {
+  var ship: Ship
+}
 
-class World {
+
+class WorldImpl extends World {
   val planet1 = Planet("Earth", "M", Point(0, 0))
   val star1 = Star("Sol", "G", Point(-30, -30))
-  val ship1 = Ship("Enterprise", "explorer", Point(-30, -30))
+  val ship1a = Ship("Enterprise", "explorer", Point(-30, -30))
   val ship2 = Ship("Reliant", "science", Point(0, -15))
   val ship3 = Ship("Defiant", "military", Point(30, -30))
 
-  val gameObjects: List[Entity] = List(ship1)
+  var ship = ship1a
+
+  val gameObjects: List[Entity] = List(ship1a)
 
   val background: Seq[Tile] = {
     val q = for {
@@ -42,8 +48,6 @@ class World {
   def objects: Seq[Tile] = {
     gameObjects.map(obj => Tile(obj))
   }
-
-  def layers: Seq[Layer] = List(background).map(Tile.toLayer(_))
 }
 
 case class Tile(position: Point, imageView: ImageView, size: Int)
@@ -113,21 +117,11 @@ object Tile {
 
     Tile(obj.position, imageView, tileScale)
   }
-
-  def toLayer(tiles: Seq[Tile]): Layer = {
-    new Layer {
-      def apply(p: Point): Option[ImageView] = {
-        for {
-          tile <- tiles.find(_.position == p)
-        } yield tile.imageView
-      }
-    }
-  }
 }
 
-object WorldBuilder {
+object World {
   def apply(): World = {
-    val world = new World
+    val world = new WorldImpl
     world
   }
 }

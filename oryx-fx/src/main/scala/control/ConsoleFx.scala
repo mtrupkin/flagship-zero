@@ -8,7 +8,7 @@ import org.mtrupkin.math.{Point, Size, Vect}
 
 import scalafx.scene.paint.Color
 
-/**
+/*
   * Created by mtrupkin on 3/22/2016.
   */
 trait ConsoleFx extends Pane {
@@ -17,6 +17,8 @@ trait ConsoleFx extends Pane {
 
   /** position is in world coordinates and is in center of image */
   def draw(p: Point, size: Size, imageView: ImageView): Unit
+
+//  def drawSprite(sprite: Tile): Unit
 
   /** convert from screen pixels coordinates to world coordinates */
   def screenToWorld(x: Double, y: Double): Point
@@ -51,7 +53,7 @@ class ConsoleFxImpl(val screen: Size = Size(640, 640)) extends ConsoleFx {
 
   def draw(p: Point, size: Size, imageView: ImageView): Unit = {
     val screen = toScreen(p)
-    val adj = toScreen(size)
+    val adj = size*scale
 
     drawScreen(screen - adj, imageView)
   }

@@ -9,7 +9,8 @@ case class Vect(x: Double, y: Double) {
 
   def *(scale: Double): Vect = Vect(x * scale, y * scale)
   def /(scale: Double): Vect = Vect(x / scale, y / scale)
-  def normal(length: Double): Vect = (this/this.normal) * length
+  def normal(length: Double): Vect = normalize * length
+  def normalize: Vect = this/this.normal
 
   def unary_- = Vect(-x, -y)
 

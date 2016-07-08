@@ -4,7 +4,7 @@ import javafx.fxml.FXML
 import javafx.scene.control.{Label, Slider, TextArea}
 import javafx.scene.layout.Pane
 
-import model.World
+import model.{Tile, World}
 import org.mtrupkin.control.ConsoleFx
 import org.mtrupkin.math.{Point, Size, Vect}
 import tileset.Oryx
@@ -14,15 +14,11 @@ import scalafx.scene.input.{KeyCode, MouseButton}
 import scalafx.scene.input.KeyCode._
 import scalafx.scene.{control => sfxc, input => sfxi, layout => sfxl}
 
-
-/**
- * Created by mtrupkin on 12/15/2014.
- */
 trait Game { self: Controller =>
   class GameController(var world: World) extends ControllerState {
     val name = "Game"
 
-    val shipMovement = new ShipMovement(world.ship1)
+    var shipMovement = new ShipMovement(world.ship)
 
     @FXML var consolePane: Pane = _
     val console = ConsoleFx()
@@ -39,6 +35,8 @@ trait Game { self: Controller =>
         onMouseMoved = (e: sfxi.MouseEvent) => handleMouseMove(e)
         onMouseExited = (e: sfxi.MouseEvent) => handleMouseExit(e)
         onMouseDragged = (e: sfxi.MouseEvent) => handleMouseDragged(e)
+        onMouseDragExited = (e: sfxi.MouseEvent) => handleMouseDragExited(e)
+        onMouseReleased = (e: sfxi.MouseEvent) => handleMouseReleased(e)
       }
 
       consolePane.getChildren.clear()
@@ -49,9 +47,11 @@ trait Game { self: Controller =>
 
     override def update(elapsed: Int): Unit = {
       console.clear()
-      world.objects.foreach(tile => console.draw(tile.position, Size(tile.size, tile.size), tile.imageView))
-      console.draw(cursor, Size(1, 1), Oryx.imageView(s"bg-1"))
-      console.drawVect(world.ship1.position, shipMovement.heading)
+//      world.objects.foreach(tile => console.draw(tile.position, Size(tile.size, tile.size), tile.imageView))
+      val tile = Tile(world.ship)
+      console.draw(tile.position, Size(tile.size, tile.size), tile.imageView)
+
+      console.drawVect(world.ship.position, shipMovement.heading)
     }
 
     def handleMouseDragged(event: sfxi.MouseEvent): Unit = {
@@ -59,6 +59,15 @@ trait Game { self: Controller =>
         cursor = console.screenToWorld(event.x, event.y)
         shipMovement.move(cursor)
       }
+    }
+
+    def handleMouseDragExited(event: sfxi.MouseEvent): Unit = {
+      world.ship = world.ship.move(shipMovement.heading)
+    }
+
+    def handleMouseReleased(event: sfxi.MouseEvent): Unit = {
+      world.ship = world.ship.move(shipMovement.heading)
+      shipMovement = new ShipMovement(world.ship)
     }
 
     var cursor = Point.Origin

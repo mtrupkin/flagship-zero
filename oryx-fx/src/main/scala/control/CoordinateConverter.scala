@@ -4,6 +4,9 @@ import org.mtrupkin.math.{Point, Size, Vect}
 
 
 trait CoordinateConverter {
+  /** screen to world ratio */
+  def scale: Vect
+
   /** converts coordinates with origin in upper left to
     * coordinates with origin in center
     */
