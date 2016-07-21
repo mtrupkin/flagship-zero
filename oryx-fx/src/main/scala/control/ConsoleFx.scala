@@ -26,7 +26,7 @@ trait ConsoleFx extends Pane {
   def drawVect(p: Point, v: Vect): Unit
 }
 
-class ConsoleFxImpl(val screen: Size = Size(640, 640)) extends ConsoleFx {
+class ConsoleFxImpl(val screen: Size = Size(800, 800)) extends ConsoleFx {
   // size of individual tile in pixels
   var tileSize2 = Size(8, 8)
   val worldSize = Size(screen.width / tileSize2.width, screen.height / tileSize2.height)

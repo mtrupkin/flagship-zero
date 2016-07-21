@@ -24,10 +24,16 @@ case class Vect(x: Double, y: Double) {
   }
 
   def dot(v: Vect): Double = x * v.x + y * v.y
-  def angle(v: Vect): Double = acos(this.dot(v) / (this.normal * v.normal))
+  def angle(v: Vect): Double = arcCosine(this.dot(v) / (this.normal * v.normal))
+  def determinant(v: Vect): Double = x*v.y - y*v.x
+  def signedAngle(v: Vect): Double = {
+    val angle = this.angle(v)
+    if (determinant(v) >= 0) angle else -angle
+  }
 }
 
 object Vect {
+  val Zero = Vect(0, 0)
   val Up = Vect(0, 1)
   val Down = Vect(0, -1)
   val Left = Vect(-1, 0)

@@ -32,6 +32,7 @@ trait Game { self: Controller =>
 
       new sfxl.Pane(console) {
         onMouseClicked = (e: sfxi.MouseEvent) => handleMouseClicked(e)
+        onMousePressed = (e: sfxi.MouseEvent) => handleMousePressed(e)
         onMouseMoved = (e: sfxi.MouseEvent) => handleMouseMove(e)
         onMouseExited = (e: sfxi.MouseEvent) => handleMouseExit(e)
         onMouseDragged = (e: sfxi.MouseEvent) => handleMouseDragged(e)
@@ -51,29 +52,33 @@ trait Game { self: Controller =>
       val tile = Tile(world.ship)
       console.draw(tile.position, Size(tile.size, tile.size), tile.imageView)
 
-      console.drawVect(world.ship.position, shipMovement.heading)
+      console.drawVect(world.ship.position, shipMovement.velocity)
     }
 
     def handleMouseDragged(event: sfxi.MouseEvent): Unit = {
       if (event.isSecondaryButtonDown) {
-        cursor = console.screenToWorld(event.x, event.y)
+        val cursor = console.screenToWorld(event.x, event.y)
         shipMovement.move(cursor)
       }
     }
 
     def handleMouseDragExited(event: sfxi.MouseEvent): Unit = {
-      world.ship = world.ship.move(shipMovement.heading)
+      world.ship = world.ship.move(shipMovement.velocity)
     }
 
     def handleMouseReleased(event: sfxi.MouseEvent): Unit = {
-      world.ship = world.ship.move(shipMovement.heading)
+      world.ship = world.ship.move(shipMovement.velocity)
       shipMovement = new ShipMovement(world.ship)
     }
 
-    var cursor = Point.Origin
-
     def handleMouseMove(event: sfxi.MouseEvent): Unit = {
-      cursor = console.screenToWorld(event.x, event.y)
+    }
+
+    def handleMousePressed(event: sfxi.MouseEvent): Unit = {
+      if (event.isSecondaryButtonDown) {
+        val cursor = console.screenToWorld(event.x, event.y)
+        shipMovement.move(cursor)
+      }
     }
 
     def handleMouseClicked(event: sfxi.MouseEvent): Unit = {

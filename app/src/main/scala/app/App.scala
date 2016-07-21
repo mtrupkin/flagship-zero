@@ -10,7 +10,7 @@ import model.World
 
 class ConsoleApp extends Application {
 	override def start(primaryStage: Stage) {
-		primaryStage.setTitle("Flagship - Zero")
+		primaryStage.setTitle("Flagship")
 
 		object Controller extends Controller {
 			lazy val initialState: ControllerState = new GameController(World())
