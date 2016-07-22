@@ -1,18 +1,17 @@
 package controller
 
 import javafx.fxml.FXML
-import javafx.scene.control.{Label, Slider, TextArea}
 import javafx.scene.layout.Pane
 
-import model.{Tile, World}
-import org.mtrupkin.control.ConsoleFx
+import model.{Sprite, World}
+import org.mtrupkin.control.{ConsoleFx, CoordinateConverter}
 import org.mtrupkin.math.{Point, Size, Vect}
-import tileset.Oryx
 
 import scalafx.Includes._
-import scalafx.scene.input.{KeyCode, MouseButton}
+import scalafx.scene.input.KeyCode
 import scalafx.scene.input.KeyCode._
 import scalafx.scene.{control => sfxc, input => sfxi, layout => sfxl}
+import spriteset._
 
 trait Game { self: Controller =>
   class GameController(var world: World) extends ControllerState {
@@ -21,7 +20,13 @@ trait Game { self: Controller =>
     var shipMovement = new ShipMovement(world.ship)
 
     @FXML var consolePane: Pane = _
-    val console = ConsoleFx()
+    val screenSize = Size(800, 800)
+    // world unit size is one sprite unit
+    val worldSize = screenSize / SPRITE_UNIT_PIXEL
+    val converter = CoordinateConverter(screenSize, worldSize)
+
+    val console = ConsoleFx(screenSize, converter)
+
 
     def initialize(): Unit = {
       new sfxl.Pane(consolePane) {
@@ -48,26 +53,29 @@ trait Game { self: Controller =>
 
     override def update(elapsed: Int): Unit = {
       console.clear()
-//      world.objects.foreach(tile => console.draw(tile.position, Size(tile.size, tile.size), tile.imageView))
-      val tile = Tile(world.ship)
-      console.draw(tile.position, Size(tile.size, tile.size), tile.imageView)
+      world.background.foreach(b => console.drawSprite(b._1, b._2))
+      val sprite = Sprite(world.ship.copy(heading = shipMovement.heading))
+      console.drawSprite(world.ship.position, sprite)
 
-      console.drawVect(world.ship.position, shipMovement.velocity)
+      console.drawVect(world.ship.position, shipMovement.heading)
     }
 
     def handleMouseDragged(event: sfxi.MouseEvent): Unit = {
       if (event.isSecondaryButtonDown) {
-        val cursor = console.screenToWorld(event.x, event.y)
-        shipMovement.move(cursor)
+        val cursor = toWorld(event)
+        if (event.shiftDown) {
+          shipMovement.rotate(cursor)
+        } else {
+          shipMovement.move(cursor)
+        }
       }
     }
 
     def handleMouseDragExited(event: sfxi.MouseEvent): Unit = {
-      world.ship = world.ship.move(shipMovement.velocity)
     }
 
     def handleMouseReleased(event: sfxi.MouseEvent): Unit = {
-      world.ship = world.ship.move(shipMovement.velocity)
+      world.ship = shipMovement.move()
       shipMovement = new ShipMovement(world.ship)
     }
 
@@ -76,7 +84,7 @@ trait Game { self: Controller =>
 
     def handleMousePressed(event: sfxi.MouseEvent): Unit = {
       if (event.isSecondaryButtonDown) {
-        val cursor = console.screenToWorld(event.x, event.y)
+        val cursor = toWorld(event)
         shipMovement.move(cursor)
       }
     }
@@ -107,6 +115,8 @@ trait Game { self: Controller =>
         case _ => None
       }
     }
+
+    def toWorld(event: sfxi.MouseEvent): Point = converter.toWorld(Point(event.x, event.y))
   }
 }
 

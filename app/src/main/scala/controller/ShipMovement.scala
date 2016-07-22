@@ -2,21 +2,40 @@ package controller
 
 import model.Ship
 import org.mtrupkin.math._
+import Math._
 
 class ShipMovement(ship: Ship) {
-  protected var heading: Vect = ship.heading
+  var heading: Vect = ship.heading.normal(1.0)
   protected var speed: Double = 0.0
 
-  def velocity: Vect = heading.normal(speed)
+  def move(): Ship = {
+    val velocity: Vect = heading.normal(speed)
+
+    if (velocity.normal > EPSILON) {
+      val p = ship.position + velocity
+      ship.copy(position = p, heading = velocity.normalize)
+    } else {
+      ship.copy(heading = heading)
+    }
+  }
+
+  def rotate(cursor: Vect): Unit = {
+    val input = cursor - ship.position
+    val normal = input.normal
+
+    if (normal > EPSILON) {
+      heading = input.normal(ship.maximumSpeed)
+      speed = 0.0
+    }
+  }
 
   def move(cursor: Vect): Unit = {
     val input = cursor - ship.position
-    speed = input.normal
-    if (speed > 0) {
-      var angle = ship.heading.signedAngle(input)
-      angle = limit(angle, -ship.maxTurn, ship.maxTurn)
-      heading = ship.heading.rotate(angle)
+    val normal = input.normal
+
+    if (normal > EPSILON) {
+      speed = min(ship.maximumSpeed, normal)
+      heading = input.normal(speed)
     }
-    speed = limit(input.normal, ship.minSpeed, ship.maxSpeed)
   }
 }

@@ -15,7 +15,7 @@ case class Vect(x: Double, y: Double) {
   def unary_- = Vect(-x, -y)
 
   import Math._
-  def angle: Double = atan2(y, x)
+  def unsignedAngle: Double = atan2(y, x)
   def normal: Double = sqrt(x*x + y*y)
   def rotate(theta: Double): Vect = {
     val x0 = x * cos(theta) - y * sin(theta)
@@ -24,12 +24,13 @@ case class Vect(x: Double, y: Double) {
   }
 
   def dot(v: Vect): Double = x * v.x + y * v.y
-  def angle(v: Vect): Double = arcCosine(this.dot(v) / (this.normal * v.normal))
-  def determinant(v: Vect): Double = x*v.y - y*v.x
-  def signedAngle(v: Vect): Double = {
-    val angle = this.angle(v)
+  def angle(v: Vect): Double = {
+    val angle = this.unsignedAngle(v)
     if (determinant(v) >= 0) angle else -angle
   }
+
+  def unsignedAngle(v: Vect): Double = arcCosine(this.dot(v) / (this.normal * v.normal))
+  def determinant(v: Vect): Double = x*v.y - y*v.x
 }
 
 object Vect {

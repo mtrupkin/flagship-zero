@@ -1,4 +1,4 @@
-package tileset
+package spriteset
 
 import org.mtrupkin.math.Size
 import play.api.libs.json.Json
@@ -11,10 +11,10 @@ case class SpriteDef(name: String, tile: Int)
 /** Individual spliced sprite */
 case class SpriteSlicedDef(name: String, tile: String)
 
-/** Image containing sprites */
-case class SpriteSheetDef(filename: String, tile: Size, sprites: Seq[SpriteDef])
+/** Single image containing multiple sprites */
+case class SpriteSheetDef(filename: String, size: Int, sprites: Seq[SpriteDef])
 
-/** Multiple images containing a single sprite */
+/** Multiple images, each containing a single sprite */
 case class SpriteSheetSlicedDef(location: String, sprites: Seq[SpriteSlicedDef])
 
 /** Oryx Package Set */

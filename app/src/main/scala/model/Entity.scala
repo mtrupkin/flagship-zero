@@ -1,6 +1,6 @@
 package model
 
-import org.mtrupkin.math.{Point, Vect}
+import org.mtrupkin.math.Point
 
 /** Created by mtrupkin on 6/30/2016. */
 trait Entity {

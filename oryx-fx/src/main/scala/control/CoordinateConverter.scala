@@ -16,10 +16,13 @@ trait CoordinateConverter {
     * coordinates with origin in upper left
     */
   def toScreen(p: Point): Point
+
+  def toScreen(v: Vect): Vect
 }
 
-class CoordinateConverterImpl(val screen: Size, val quadrant: Size)
+class CoordinateConverterImpl(val screen: Size, val world: Size)
   extends CoordinateConverter {
+  val quadrant: Size = world / 2
   val screen2 = screen / 2
   import screen2._
 
@@ -38,6 +41,15 @@ class CoordinateConverterImpl(val screen: Size, val quadrant: Size)
     val p0 = p * scale
     Point(p0.x + width, height - p0.y)
   }
+
+  // converts coordinates with origin in center to
+  // coordinates with origin in upper left
+  def toScreen(v: Vect): Vect = {
+    val v0 = v * scale
+    val v1 = Vect(v0.x, -v0.y)
+    v1
+  }
+
 }
 
 object CoordinateConverter {
