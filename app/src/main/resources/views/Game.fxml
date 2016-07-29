@@ -5,7 +5,7 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.layout.*?>
 
-<GridPane fx:id="rootPane" alignment="TOP_CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="1280.0" styleClass="dark-background" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<GridPane fx:id="rootPane" alignment="TOP_CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0" prefWidth="1280.0" styleClass="dark-background" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
    <columnConstraints>
       <ColumnConstraints hgrow="NEVER" minWidth="10.0" />
       <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
@@ -14,7 +14,7 @@
       <RowConstraints minHeight="10.0" vgrow="NEVER" />
    </rowConstraints>
    <children>
-      <Pane fx:id="consolePane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="200.0" minWidth="400.0" style="-fx-border-color: white;" styleClass="dark-background" GridPane.halignment="LEFT" GridPane.valignment="TOP" />
+      <Pane fx:id="consolePane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="720.0" minWidth="720.0" style="-fx-border-color: white;" styleClass="dark-background" GridPane.halignment="LEFT" GridPane.valignment="TOP" />
       <GridPane styleClass="dark" GridPane.columnIndex="1">
         <columnConstraints>
           <ColumnConstraints hgrow="SOMETIMES" minWidth="200.0" />
@@ -30,6 +30,8 @@
             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
          </padding>
          <children>
+            <Label text="Target:" />
+            <Label fx:id="targetLabel" GridPane.columnIndex="1" />
          </children>
       </GridPane>
    </children>

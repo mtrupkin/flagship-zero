@@ -1,9 +1,10 @@
 package controller
 
 import javafx.fxml.FXML
+import javafx.scene.control.Label
 import javafx.scene.layout.Pane
 
-import model.{Sprite, World}
+import model.World
 import org.mtrupkin.control.{ConsoleFx, CoordinateConverter}
 import org.mtrupkin.math.{Point, Size, Vect}
 
@@ -14,19 +15,20 @@ import scalafx.scene.{control => sfxc, input => sfxi, layout => sfxl}
 import spriteset._
 
 trait Game { self: Controller =>
-  class GameController(var world: World) extends ControllerState {
+  class GameController(val world: World) extends ControllerState {
     val name = "Game"
 
     var shipMovement = new ShipMovement(world.ship)
 
     @FXML var consolePane: Pane = _
-    val screenSize = Size(800, 800)
+    @FXML var targetLabel: Label = _
+
+    val screenSize = Size(720, 720)
     // world unit size is one sprite unit
     val worldSize = screenSize / SPRITE_UNIT_PIXEL
     val converter = CoordinateConverter(screenSize, worldSize)
 
     val console = ConsoleFx(screenSize, converter)
-
 
     def initialize(): Unit = {
       new sfxl.Pane(consolePane) {
@@ -52,12 +54,12 @@ trait Game { self: Controller =>
     }
 
     override def update(elapsed: Int): Unit = {
-      console.clear()
-      world.background.foreach(b => console.drawSprite(b._1, b._2))
-      val sprite = Sprite(world.ship.copy(heading = shipMovement.heading))
-      console.drawSprite(world.ship.position, sprite)
+      import world._
 
-      console.drawVect(world.ship.position, shipMovement.heading)
+      console.clear()
+      entities.foreach(e => console.drawSprite(e.position, e.sprite))
+      console.drawSprite(ship.position, ship.copy(heading = shipMovement.heading).sprite)
+      console.drawVect(ship.position, shipMovement.heading)
     }
 
     def handleMouseDragged(event: sfxi.MouseEvent): Unit = {
@@ -80,6 +82,10 @@ trait Game { self: Controller =>
     }
 
     def handleMouseMove(event: sfxi.MouseEvent): Unit = {
+      val cursor = toWorld(event)
+      val entity = world.entity(cursor)
+
+      targetLabel.setText(entity.name)
     }
 
     def handleMousePressed(event: sfxi.MouseEvent): Unit = {

@@ -5,7 +5,7 @@ import javafx.scene.image.ImageView
 import play.api.libs.json.Json
 
 trait Oryx {
-  def sprite(sprite: String, scale: Int = 1, rotation: Option[Double] = None): Sprite
+  def sprite(sprite: String, scale: Int = 1): Sprite
 }
 
 object Oryx extends Oryx {
@@ -37,14 +37,12 @@ object Oryx extends Oryx {
     sheetSet ++ slicedSet
   }
 
-  def sprite(name: String, scale: Int, rotation: Option[Double]): Sprite = {
+  def sprite(name: String, scale: Int): Sprite = {
     val imageViews = for {
       spriteSet <- spriteSets.filter(_.scale==scale)
       imageView <- spriteSet.sprite(name)
     } yield imageView
 
-    val sprite = imageViews.head
-    rotation.map(angle => sprite.imageView.setRotate(angle))
-    sprite
+    imageViews.head
   }
 }
