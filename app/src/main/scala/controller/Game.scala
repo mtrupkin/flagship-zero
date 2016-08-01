@@ -26,7 +26,7 @@ trait Game { self: Controller =>
     val screenSize = Size(720, 720)
     // world unit size is one sprite unit
     val worldSize = screenSize / SPRITE_UNIT_PIXEL
-    val converter = CoordinateConverter(screenSize, worldSize)
+    val converter = CoordinateConverter(world.ship.position, screenSize, worldSize)
 
     val console = ConsoleFx(screenSize, converter)
 
@@ -79,13 +79,14 @@ trait Game { self: Controller =>
     def handleMouseReleased(event: sfxi.MouseEvent): Unit = {
       world.ship = shipMovement.move()
       shipMovement = new ShipMovement(world.ship)
+      converter.origin = world.ship.position
     }
 
     def handleMouseMove(event: sfxi.MouseEvent): Unit = {
       val cursor = toWorld(event)
-      val entity = world.entity(cursor)
+//      val entity = world.entity(cursor)
 
-      targetLabel.setText(entity.name)
+//      targetLabel.setText(entity.name)
     }
 
     def handleMousePressed(event: sfxi.MouseEvent): Unit = {

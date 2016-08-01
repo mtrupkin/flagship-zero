@@ -26,6 +26,8 @@ class WorldImpl() extends World {
 
   var ship = ship1
 
+  def entity(p: Point): Option[Entity] = ???
+
   val background: Seq[Entity] = {
     for {
       i <- 1 to 5

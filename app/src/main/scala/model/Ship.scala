@@ -15,7 +15,7 @@ case class Ship(
     maximumSpeed: Int = 10) extends Entity {
 
   override def sprite: Sprite = {
-    val sprite = Oryx.sprite(s"${Ship.subtypeMap(subtype)}-${Ship.factionMap(faction)}", 2)
+    val sprite = Oryx.sprite(s"${Ship.subtypeMap(subtype)}-${Ship.factionMap(faction)}", 1)
 
     sprite.imageView.setRotate(-heading.unsignedAngle*180/Math.PI)
     sprite
@@ -35,8 +35,8 @@ object Ship {
   )
 
   val factionMap = Map(
-    "friendly" -> "gray",
-    "enemy" -> "blue"
+    "friendly" -> "blue",
+    "enemy" -> "green"
   )
 }
 
