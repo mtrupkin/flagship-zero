@@ -12,12 +12,12 @@ trait ConsoleFx extends Pane {
   /** prepare to draw */
   def clear(): Unit
 
-  def drawSprite(p: Point, sprite: Sprite): Unit
+  def drawSprite(p: Point, sprite: Sprite)(implicit origin: Point): Unit
 
-  def drawVect(p: Point, v: Vect): Unit
+  def drawVect(p: Point, v: Vect)(implicit origin: Point): Unit
 }
 
-class ConsoleFxImpl(val screen: Size) extends ConsoleFx {
+abstract class ConsoleFxImpl(val screen: Size) extends ConsoleFx {
   val canvas = new Canvas(screen.width, screen.height)
   val gc = canvas.graphicsContext2D
   setMinSize(screen.width, screen.height)
@@ -30,11 +30,13 @@ class ConsoleFxImpl(val screen: Size) extends ConsoleFx {
 
   /** position is in screen coordinates and is in center of image */
   def drawSprite(p: Point, sprite: Sprite): Unit = {
-    import sprite._
-    val adj = size*SPRITE_UNIT_PIXEL/2.0
-    val p0 = p - Point(adj, adj)
-    imageView.relocate(p0.x, p0.y)
-    getChildren.add(imageView)
+    if (screen.in(p)) {
+      import sprite._
+      val adj = size * SPRITE_UNIT_PIXEL / 2.0
+      val p0 = p - Point(adj, adj)
+      imageView.relocate(p0.x, p0.y)
+      getChildren.add(imageView)
+    }
   }
 
   /** position and vector is in screen coordinates */
@@ -46,26 +48,22 @@ class ConsoleFxImpl(val screen: Size) extends ConsoleFx {
   }
 }
 
-trait ConvertingConsoleFx extends ConsoleFx {
-  val converter: CoordinateConverter
-
+class ConvertingConsoleFx(val converter: CoordinateConverter) extends ConsoleFxImpl(converter.screenSize) {
   /** position is in world coordinates and is in center of image */
-  abstract override def drawSprite(p: Point, sprite: Sprite): Unit = {
-    val p0 = converter.toScreen(p)
+  def drawSprite(p: Point, sprite: Sprite)(implicit origin: Point): Unit = {
+    val p0 = converter.toScreen(p)(origin)
     super.drawSprite(p0, sprite)
   }
 
   /** position and vector is in world coordinates */
-  abstract override def drawVect(p: Point, v: Vect): Unit = {
-    val p0 = converter.toScreen(p)
+  def drawVect(p: Point, v: Vect)(implicit origin: Point): Unit = {
+    val p0 = converter.toScreen(p)(origin)
     val v0 = converter.toScreen(v)
     super.drawVect(p0, v0)
   }
 }
 
 object ConsoleFx {
-  def apply(screenSize: Size, coordinateConverter: CoordinateConverter): ConsoleFx =
-    new ConsoleFxImpl(screenSize) with ConvertingConsoleFx {
-      val converter = coordinateConverter
-    }
+  def apply(coordinateConverter: CoordinateConverter): ConsoleFx =
+    new ConvertingConsoleFx(coordinateConverter)
 }

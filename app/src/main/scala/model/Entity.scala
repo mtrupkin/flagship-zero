@@ -9,15 +9,19 @@ trait Entity {
   def sprite: Sprite
 }
 
+trait Body extends Entity {
+  def name: String
+}
+
 case class StaticEntity(position: Point, sprite: Sprite) extends Entity
 
-trait SubtypeEntity extends Entity {
+trait Subtype extends Body {
   def subtype: String
   val subtypeMap: Map[String, String]
   def sprite(): Sprite = Oryx.sprite(subtypeMap(subtype))
 }
 
-case class Star(name: String, subtype: String, position: Point) extends SubtypeEntity {
+case class Star(name: String, subtype: String, position: Point) extends Subtype {
   // star classes
   // O hot
   // B hot super-giant
@@ -37,7 +41,7 @@ case class Star(name: String, subtype: String, position: Point) extends SubtypeE
   )
 }
 
-case class Planet(name: String, subtype: String, position: Point) extends SubtypeEntity {
+case class Planet(name: String, subtype: String, position: Point) extends Subtype {
   // M earth-like
   // A aquatic
   // B barren

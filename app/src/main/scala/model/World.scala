@@ -1,7 +1,8 @@
 package model
 
-import org.mtrupkin.math.{Point, Size}
-import spriteset.{Oryx, Sprite}
+import org.mtrupkin.control.CoordinateConverter
+import org.mtrupkin.math.{Point, Size, Vect}
+import spriteset._
 
 import scala.util.Random
 
@@ -12,11 +13,18 @@ trait World {
   var entities: Seq[Entity]
   var ship: Ship
   def entity(p: Point): Option[Entity]
+  def converter: CoordinateConverter
 }
 
 class WorldImpl() extends World {
-  val size = Size(90, 90)
-  val size2 = size / 2
+  val screenSize = Size(720, 720)
+  // world unit size is one sprite unit
+  // world size (90, 90)
+  val worldSize = screenSize / SPRITE_UNIT_PIXEL
+  val worldSize2 = worldSize / 2
+
+  val converter = CoordinateConverter(screenSize, worldSize)
+
 
   val planet1 = Planet("Earth", "M", Point(0, 0))
   val star1 = Star("Sol", "G", Point(-30, -30))
@@ -26,15 +34,23 @@ class WorldImpl() extends World {
 
   var ship = ship1
 
-  def entity(p: Point): Option[Entity] = ???
+  def entity(p: Point): Option[Entity] = {
+    entities.find( e => {
+      val pixels = e.sprite.size * SPRITE_UNIT_PIXEL / 2
+      val v = Vect(pixels, pixels)
+      val q = converter.toWorld(v)
+      val n = (p - e.position)
+      n.normal < q.normal
+    })
+  }
 
   val background: Seq[Entity] = {
     for {
       i <- 1 to 5
       rnd = Random.nextInt(6) + 1
     } yield {
-      val x = Random.nextInt(size.width) - size2.width
-      val y = Random.nextInt(size.height) - size2.height
+      val x = Random.nextInt(worldSize.width) - worldSize2.width
+      val y = Random.nextInt(worldSize.height) - worldSize2.height
       StaticEntity(Point(x, y), Oryx.sprite(s"bg-$rnd"))
     }
   }

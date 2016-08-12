@@ -12,10 +12,10 @@ case class Ship(
     faction: String,
     position: Point,
     heading: Vect = Vect.Up,
-    maximumSpeed: Int = 10) extends Entity {
+    maximumSpeed: Int = 10) extends Body {
 
   override def sprite: Sprite = {
-    val sprite = Oryx.sprite(s"${Ship.subtypeMap(subtype)}-${Ship.factionMap(faction)}", 1)
+    val sprite = Oryx.sprite(s"${Ship.subtypeMap(subtype)}-${Ship.factionMap(faction)}", 2)
 
     sprite.imageView.setRotate(-heading.unsignedAngle*180/Math.PI)
     sprite

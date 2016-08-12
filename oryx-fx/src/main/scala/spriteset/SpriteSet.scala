@@ -7,6 +7,7 @@ import org.mtrupkin.math.Size
 import play.api.libs.json.Json
 
 /** size in 8x8 pixels units */
+// TODO change size to pixel units instead of 8x8 pixel units
 case class Sprite(imageView: ImageView, size: Int = 1)
 
 // Created by mtrupkin on 6/17/2016.

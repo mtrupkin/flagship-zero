@@ -4,7 +4,7 @@ import javafx.fxml.FXML
 import javafx.scene.control.Label
 import javafx.scene.layout.Pane
 
-import model.World
+import model.{World, Body}
 import org.mtrupkin.control.{ConsoleFx, CoordinateConverter}
 import org.mtrupkin.math.{Point, Size, Vect}
 
@@ -23,12 +23,7 @@ trait Game { self: Controller =>
     @FXML var consolePane: Pane = _
     @FXML var targetLabel: Label = _
 
-    val screenSize = Size(720, 720)
-    // world unit size is one sprite unit
-    val worldSize = screenSize / SPRITE_UNIT_PIXEL
-    val converter = CoordinateConverter(world.ship.position, screenSize, worldSize)
-
-    val console = ConsoleFx(screenSize, converter)
+    val console = ConsoleFx(world.converter)
 
     def initialize(): Unit = {
       new sfxl.Pane(consolePane) {
@@ -55,6 +50,8 @@ trait Game { self: Controller =>
 
     override def update(elapsed: Int): Unit = {
       import world._
+      implicit val origin = ship.position
+
 
       console.clear()
       entities.foreach(e => console.drawSprite(e.position, e.sprite))
@@ -79,14 +76,17 @@ trait Game { self: Controller =>
     def handleMouseReleased(event: sfxi.MouseEvent): Unit = {
       world.ship = shipMovement.move()
       shipMovement = new ShipMovement(world.ship)
-      converter.origin = world.ship.position
     }
 
     def handleMouseMove(event: sfxi.MouseEvent): Unit = {
       val cursor = toWorld(event)
-//      val entity = world.entity(cursor)
+      val entity = world.entity(cursor)
 
-//      targetLabel.setText(entity.name)
+      entity match  {
+        case Some(b: Body) => targetLabel.setText(b.name)
+        case _ => targetLabel.setText("")
+      }
+
     }
 
     def handleMousePressed(event: sfxi.MouseEvent): Unit = {
@@ -123,7 +123,11 @@ trait Game { self: Controller =>
       }
     }
 
-    def toWorld(event: sfxi.MouseEvent): Point = converter.toWorld(Point(event.x, event.y))
+    def toWorld(event: sfxi.MouseEvent): Point = {
+      import world._
+      implicit val origin = ship.position
+      converter.toWorld(Point(event.x, event.y))
+    }
   }
 }
 
