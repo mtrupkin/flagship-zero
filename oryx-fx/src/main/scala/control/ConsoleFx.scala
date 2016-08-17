@@ -34,8 +34,17 @@ abstract class ConsoleFxImpl(val screen: Size) extends ConsoleFx {
       import sprite._
       val adj = size * SPRITE_UNIT_PIXEL / 2.0
       val p0 = p - Point(adj, adj)
+
       imageView.relocate(p0.x, p0.y)
       getChildren.add(imageView)
+
+//      val pane = new Pane()
+//      pane.relocate(p0.x, p0.y)
+//
+//      pane.getChildren.add(imageView)
+//      pane.setStyle("-fx-border-color: white; -fx-border-width: 1; -fx-border-style: solid")
+//
+//      getChildren.add(pane)
     }
   }
 

@@ -28,11 +28,10 @@ class WorldImpl() extends World {
 
   val planet1 = Planet("Earth", "M", Point(0, 0))
   val star1 = Star("Sol", "G", Point(-30, -30))
-  val ship1 = Ship("Enterprise", "explorer", "friendly", Point(0, -35))
   val ship3 = Ship("Defiant", "military", "friendly",Point(30, -30))
-  val reliant = Ship("Reliant", "science", "enemy", Point(30, 30))
+  val reliant = Ship("Reliant", "science", "enemy", Point(30, 0))
 
-  var ship = ship1
+  var ship = Ship("Enterprise", "explorer", "friendly", Point(0, -35))
 
   def entity(p: Point): Option[Entity] = {
     entities.find( e => {
@@ -55,7 +54,7 @@ class WorldImpl() extends World {
     }
   }
 
-  var entities: Seq[Entity] = List(reliant) ++ background
+  var entities: Seq[Entity] = List(reliant, star1,  planet1) ++ background
 
 }
 

@@ -19,6 +19,8 @@ trait Game { self: Controller =>
     val name = "Game"
 
     var shipMovement = new ShipMovement(world.ship)
+    var target: Option[Body] = None
+    var cursor: Option[Body] = None
 
     @FXML var consolePane: Pane = _
     @FXML var targetLabel: Label = _
