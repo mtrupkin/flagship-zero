@@ -4,7 +4,7 @@ import javafx.fxml.FXML
 import javafx.scene.control.Label
 import javafx.scene.layout.Pane
 
-import model.{World, Body}
+import model.{World, Target}
 import org.mtrupkin.control.{ConsoleFx, CoordinateConverter}
 import org.mtrupkin.math.{Point, Size, Vect}
 
@@ -19,8 +19,7 @@ trait Game { self: Controller =>
     val name = "Game"
 
     var shipMovement = new ShipMovement(world.ship)
-    var target: Option[Body] = None
-    var cursor: Option[Body] = None
+    var shipTarget: Option[Target] = None
 
     @FXML var consolePane: Pane = _
     @FXML var targetLabel: Label = _
@@ -59,6 +58,7 @@ trait Game { self: Controller =>
       entities.foreach(e => console.drawSprite(e.position, e.sprite))
       console.drawSprite(ship.position, ship.copy(heading = shipMovement.heading).sprite)
       console.drawVect(ship.position, shipMovement.heading)
+      shipTarget.foreach( t => console.drawTarget(t.position, t.sprite.size))
     }
 
     def handleMouseDragged(event: sfxi.MouseEvent): Unit = {
@@ -82,19 +82,21 @@ trait Game { self: Controller =>
 
     def handleMouseMove(event: sfxi.MouseEvent): Unit = {
       val cursor = toWorld(event)
-      val entity = world.entity(cursor)
+      val cursorTarget = world.target(cursor)
 
-      entity match  {
-        case Some(b: Body) => targetLabel.setText(b.name)
-        case _ => targetLabel.setText("")
+      cursorTarget match  {
+        case Some(_) => displayTarget(cursorTarget)
+        case _ => displayTarget(shipTarget)
       }
 
     }
 
     def handleMousePressed(event: sfxi.MouseEvent): Unit = {
+      val cursor = toWorld(event)
       if (event.isSecondaryButtonDown) {
-        val cursor = toWorld(event)
         shipMovement.move(cursor)
+      } else if (event.isPrimaryButtonDown) {
+        shipTarget = world.target(cursor)
       }
     }
 
@@ -129,6 +131,14 @@ trait Game { self: Controller =>
       import world._
       implicit val origin = ship.position
       converter.toWorld(Point(event.x, event.y))
+    }
+
+    def displayTarget(t: Option[Target]): Unit = {
+      val text = t match {
+        case Some(b: Target) => b.name
+        case _ => "None"
+      }
+      targetLabel.setText(text)
     }
   }
 }

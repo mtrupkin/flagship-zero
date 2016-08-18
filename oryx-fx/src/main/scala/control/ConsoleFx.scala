@@ -7,6 +7,7 @@ import org.mtrupkin.math.{Point, Size, Vect}
 import spriteset._
 
 import scalafx.scene.paint.Color
+import scalafx.scene.shape.StrokeLineJoin
 
 trait ConsoleFx extends Pane {
   /** prepare to draw */
@@ -15,6 +16,8 @@ trait ConsoleFx extends Pane {
   def drawSprite(p: Point, sprite: Sprite)(implicit origin: Point): Unit
 
   def drawVect(p: Point, v: Vect)(implicit origin: Point): Unit
+
+  def drawTarget(p: Point, size: Int)(implicit origin: Point): Unit
 }
 
 abstract class ConsoleFxImpl(val screen: Size) extends ConsoleFx {
@@ -55,6 +58,19 @@ abstract class ConsoleFxImpl(val screen: Size) extends ConsoleFx {
     val p1 = p + v
     gc.strokeLine(p.x, p.y, p1.x, p1.y)
   }
+
+  /** position and vector is in screen coordinates */
+  def drawTarget(p: Point, size: Int): Unit = {
+    val width = size * SPRITE_UNIT_PIXEL + 8
+    val adj = width / 2.0
+    val p0 = p - Point(adj, adj)
+
+    gc.stroke = Color.WhiteSmoke
+    gc.lineWidth = 3
+    gc.lineJoin = StrokeLineJoin.Bevel
+
+    gc.strokeRect(p0.x, p0.y, width, width)
+  }
 }
 
 class ConvertingConsoleFx(val converter: CoordinateConverter) extends ConsoleFxImpl(converter.screenSize) {
@@ -69,6 +85,12 @@ class ConvertingConsoleFx(val converter: CoordinateConverter) extends ConsoleFxI
     val p0 = converter.toScreen(p)(origin)
     val v0 = converter.toScreen(v)
     super.drawVect(p0, v0)
+  }
+
+  def drawTarget(p: Point, size: Int)(implicit origin: Point): Unit = {
+    val p0 = converter.toScreen(p)(origin)
+
+    super.drawTarget(p0, size)
   }
 }
 

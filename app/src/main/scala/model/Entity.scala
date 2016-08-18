@@ -9,13 +9,13 @@ trait Entity {
   def sprite: Sprite
 }
 
-trait Body extends Entity {
+trait Target extends Entity {
   def name: String
 }
 
 case class StaticEntity(position: Point, sprite: Sprite) extends Entity
 
-trait Subtype extends Body {
+trait Subtype extends Target {
   def subtype: String
   val subtypeMap: Map[String, String]
   def sprite(): Sprite = Oryx.sprite(subtypeMap(subtype))

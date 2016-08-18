@@ -12,7 +12,7 @@ case class Ship(
     faction: String,
     position: Point,
     heading: Vect = Vect.Up,
-    maximumSpeed: Int = 10) extends Body {
+    maximumSpeed: Int = 10) extends Target {
 
   override def sprite: Sprite = {
     val sprite = Oryx.sprite(s"${Ship.subtypeMap(subtype)}-${Ship.factionMap(faction)}", 2)

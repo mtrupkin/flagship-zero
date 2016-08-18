@@ -12,7 +12,7 @@ import scala.util.Random
 trait World {
   var entities: Seq[Entity]
   var ship: Ship
-  def entity(p: Point): Option[Entity]
+  def target(p: Point): Option[Target]
   def converter: CoordinateConverter
 }
 
@@ -33,14 +33,18 @@ class WorldImpl() extends World {
 
   var ship = Ship("Enterprise", "explorer", "friendly", Point(0, -35))
 
-  def entity(p: Point): Option[Entity] = {
-    entities.find( e => {
+  def target(p: Point): Option[Target] = {
+    def accept(e: Target): Boolean = {
       val pixels = e.sprite.size * SPRITE_UNIT_PIXEL / 2
       val v = Vect(pixels, pixels)
       val q = converter.toWorld(v)
       val n = (p - e.position)
       n.normal < q.normal
-    })
+    }
+
+    entities.collectFirst {
+      case e: Target if accept(e) => e
+    }
   }
 
   val background: Seq[Entity] = {
