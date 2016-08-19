@@ -3,6 +3,12 @@ package model
 import org.mtrupkin.math._
 import spriteset.{Oryx, Sprite}
 
+case class Weapon(name: String, attack: Int)
+
+object Weapon {
+  val Phaser1 = new Weapon("Phaser - 1", 2)
+}
+
 /**
   * Created by mtrupkin on 7/21/2016.
   */
@@ -12,7 +18,16 @@ case class Ship(
     faction: String,
     position: Point,
     heading: Vect = Vect.Up,
-    maximumSpeed: Int = 10) extends Target {
+    maximumSpeed: Int = 10,
+    maxShields: Int = 10,
+    weapons: Seq[Weapon] = Nil) extends Target {
+
+  var shields = maxShields
+
+  def damage(amount: Int): Unit = {
+    shields -= amount
+    if (shields < 0) { println("Destroyed!!!") }
+  }
 
   override def sprite: Sprite = {
     val sprite = Oryx.sprite(s"${Ship.subtypeMap(subtype)}-${Ship.factionMap(faction)}", 2)

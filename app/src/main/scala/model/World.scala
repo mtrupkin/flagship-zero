@@ -25,13 +25,14 @@ class WorldImpl() extends World {
 
   val converter = CoordinateConverter(screenSize, worldSize)
 
+  import Weapon._
 
   val planet1 = Planet("Earth", "M", Point(0, 0))
   val star1 = Star("Sol", "G", Point(-30, -30))
   val ship3 = Ship("Defiant", "military", "friendly",Point(30, -30))
   val reliant = Ship("Reliant", "science", "enemy", Point(30, 0))
 
-  var ship = Ship("Enterprise", "explorer", "friendly", Point(0, -35))
+  var ship = Ship("Enterprise", "explorer", "friendly", Point(0, -35), weapons = List(Phaser1))
 
   def target(p: Point): Option[Target] = {
     def accept(e: Target): Boolean = {

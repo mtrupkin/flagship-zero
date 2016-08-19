@@ -24,6 +24,7 @@
           <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
           <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
             <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
         </rowConstraints>
          <padding>
@@ -32,6 +33,12 @@
          <children>
             <Label text="Target:" />
             <Label fx:id="targetLabel" GridPane.columnIndex="1" />
+            <Label text="Type:" GridPane.rowIndex="1" />
+            <Label fx:id="targetTypeLabel" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <Label text="Position:" GridPane.rowIndex="2" />
+            <Label fx:id="targetPositionLabel" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+            <Label text="Distance:" GridPane.rowIndex="3" />
+            <Label fx:id="targetDistanceLabel" GridPane.columnIndex="1" GridPane.rowIndex="3" />
          </children>
       </GridPane>
    </children>

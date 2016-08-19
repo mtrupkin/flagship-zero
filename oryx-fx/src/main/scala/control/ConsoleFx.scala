@@ -18,6 +18,7 @@ trait ConsoleFx extends Pane {
   def drawVect(p: Point, v: Vect)(implicit origin: Point): Unit
 
   def drawTarget(p: Point, size: Int)(implicit origin: Point): Unit
+  def drawCursor(p: Point, size: Int)(implicit origin: Point): Unit
 }
 
 abstract class ConsoleFxImpl(val screen: Size) extends ConsoleFx {
@@ -56,7 +57,7 @@ abstract class ConsoleFxImpl(val screen: Size) extends ConsoleFx {
     gc.stroke = Color.Blue
     gc.lineWidth = 4
     val p1 = p + v
-    gc.strokeLine(p.x, p.y, p1.x, p1.y)
+//    gc.strokeLine(p.x, p.y, p1.x, p1.y)
   }
 
   /** position and vector is in screen coordinates */
@@ -65,11 +66,23 @@ abstract class ConsoleFxImpl(val screen: Size) extends ConsoleFx {
     val adj = width / 2.0
     val p0 = p - Point(adj, adj)
 
-    gc.stroke = Color.WhiteSmoke
+    drawCrossHair(p0, width, Color.WhiteSmoke)
+  }
+
+  def drawCursor(p: Point, size: Int): Unit = {
+    val width = size * SPRITE_UNIT_PIXEL + 8
+    val adj = width / 2.0
+    val p0 = p - Point(adj, adj)
+
+    drawCrossHair(p0, width, Color.YellowGreen)
+  }
+
+  def drawCrossHair(p: Point, width: Int, color: Color): Unit = {
+    gc.stroke = color
     gc.lineWidth = 3
     gc.lineJoin = StrokeLineJoin.Bevel
 
-    gc.strokeRect(p0.x, p0.y, width, width)
+    gc.strokeRect(p.x, p.y, width, width)
   }
 }
 
@@ -89,8 +102,12 @@ class ConvertingConsoleFx(val converter: CoordinateConverter) extends ConsoleFxI
 
   def drawTarget(p: Point, size: Int)(implicit origin: Point): Unit = {
     val p0 = converter.toScreen(p)(origin)
-
     super.drawTarget(p0, size)
+  }
+
+  def drawCursor(p: Point, size: Int)(implicit origin: Point): Unit = {
+    val p0 = converter.toScreen(p)(origin)
+    super.drawCursor(p0, size)
   }
 }
 
