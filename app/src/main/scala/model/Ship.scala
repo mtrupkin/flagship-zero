@@ -6,7 +6,7 @@ import spriteset.{Oryx, Sprite}
 case class Weapon(name: String, attack: Int)
 
 object Weapon {
-  val Phaser1 = new Weapon("Phaser - 1", 2)
+  val Phaser1 = new Weapon("Phaser-1", 2)
 }
 
 /**

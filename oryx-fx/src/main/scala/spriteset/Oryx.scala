@@ -1,7 +1,5 @@
 package spriteset
 
-import javafx.scene.image.ImageView
-
 import play.api.libs.json.Json
 
 trait Oryx {

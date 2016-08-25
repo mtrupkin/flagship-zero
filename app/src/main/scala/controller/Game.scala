@@ -4,17 +4,18 @@ import javafx.fxml.FXML
 import javafx.scene.control.Label
 import javafx.scene.layout.Pane
 
+import console.{Transform}
+import control.GameConsole
 import model._
-import org.mtrupkin.control.{ConsoleFx, CoordinateConverter}
+import org.mtrupkin.control.SpriteConsole
 import org.mtrupkin.math.{Point, Size, Vect}
 
 import scalafx.Includes._
 import scalafx.scene.input.KeyCode
 import scalafx.scene.input.KeyCode._
 import scalafx.scene.{control => sfxc, input => sfxi, layout => sfxl}
-import spriteset._
-
 import scala.util.Random
+
 
 trait Game { self: Controller =>
   class GameController(val world: World) extends ControllerState {
@@ -31,8 +32,16 @@ trait Game { self: Controller =>
     @FXML var targetTypeLabel: Label = _
     @FXML var targetPositionLabel: Label = _
     @FXML var targetDistanceLabel: Label = _
+    @FXML var mouseWorldLabel: Label = _
+    @FXML var mouseScreenLabel: Label = _
 
-    val console = ConsoleFx(world.converter)
+    val screenSize = Size(720, 720)
+    //  // world unit size is one sprite unit
+    //  // world size (90, 90)
+    val worldSize = screenSize / spriteset.SPRITE_UNIT_PIXEL
+    val transform = Transform(screenSize, worldSize)
+
+    val console = GameConsole(transform)
 
     def initialize(): Unit = {
       new sfxl.Pane(consolePane) {
@@ -41,7 +50,9 @@ trait Game { self: Controller =>
         }
       }
 
-      new sfxl.Pane(console) {
+      {
+        import console._
+
         onMouseClicked = (e: sfxi.MouseEvent) => handleMouseClicked(e)
         onMousePressed = (e: sfxi.MouseEvent) => handleMousePressed(e)
         onMouseMoved = (e: sfxi.MouseEvent) => handleMouseMove(e)
@@ -51,6 +62,7 @@ trait Game { self: Controller =>
         onMouseReleased = (e: sfxi.MouseEvent) => handleMouseReleased(e)
         onKeyPressed = (e: sfxi.KeyEvent) => handleKeyPressed(e)
       }
+
 
       consolePane.getChildren.clear()
       consolePane.getChildren.add(console)
@@ -64,17 +76,16 @@ trait Game { self: Controller =>
 
 
       console.clear()
-      entities.foreach(e => console.drawSprite(e.position, e.sprite))
-      console.drawSprite(ship.position, ship.copy(heading = shipMovement.heading).sprite)
-      console.drawVect(ship.position, shipMovement.heading)
-
-      cursorTarget.foreach( t => console.drawCursor(t.position, t.sprite.size))
-      shipTarget.foreach( t => console.drawTarget(t.position, t.sprite.size))
+      entities.foreach(console.draw(_))
+      console.draw(ship.copy(heading = shipMovement.heading))
+      // console.drawVect(ship.position, shipMovement.heading)
+      cursorTarget.foreach(console.cursor(_))
+      shipTarget.foreach(console.target(_))
     }
 
     def handleMouseDragged(event: sfxi.MouseEvent): Unit = {
       if (event.isSecondaryButtonDown) {
-        val cursor = toWorld(event)
+        val cursor = world(event)
         if (event.shiftDown) {
           shipMovement.rotate(cursor)
         } else {
@@ -92,8 +103,10 @@ trait Game { self: Controller =>
     }
 
     def handleMouseMove(event: sfxi.MouseEvent): Unit = {
-      val cursor = toWorld(event)
-      cursorTarget = world.target(cursor)
+      displayMouse(event)
+
+      val cursor = point(event)
+      cursorTarget = console.pick(cursor)
 
       cursorTarget match  {
         case Some(_) => displayTarget(cursorTarget)
@@ -103,11 +116,12 @@ trait Game { self: Controller =>
     }
 
     def handleMousePressed(event: sfxi.MouseEvent): Unit = {
-      val cursor = toWorld(event)
+      val mouse = world(event)
+
       if (event.isSecondaryButtonDown) {
-        shipMovement.move(cursor)
+        shipMovement.move(mouse)
       } else if (event.isPrimaryButtonDown) {
-        shipTarget = world.target(cursor)
+        shipTarget = console.pick(point(event))
       }
       displayTarget(shipTarget)
     }
@@ -132,18 +146,26 @@ trait Game { self: Controller =>
     def getDirection(code: KeyCode): Option[Vect] = {
       import KeyCode._
       code match {
-        case W | Up | NUMPAD8 => Option(Vect.Up)
-        case S | Down | NUMPAD2 => Option(Vect.Down)
-        case A | Left | NUMPAD4 => Option(Vect.Left)
-        case D | Right | NUMPAD6 => Option(Vect.Right)
+        case W | Up | Numpad8 => Option(Vect.Up)
+        case S | Down | Numpad2 => Option(Vect.Down)
+        case A | Left | Numpad4 => Option(Vect.Left)
+        case D | Right | Numpad6 => Option(Vect.Right)
         case _ => None
       }
     }
 
-    def toWorld(event: sfxi.MouseEvent): Point = {
-      import world._
-      implicit val origin = ship.position
-      converter.toWorld(Point(event.x, event.y))
+    def point(event: sfxi.MouseEvent): Point = Point(event.x, event.y)
+
+    def world(event: sfxi.MouseEvent): Point = {
+      implicit val origin = world.ship.position
+      transform.world(point(event))
+    }
+
+    def displayMouse(event: sfxi.MouseEvent): Unit = {
+      val mouseScreen = point(event)
+      val mouseWorld = world(event)
+      mouseScreenLabel.setText(formatIntPoint(mouseScreen))
+      mouseWorldLabel.setText(formatPoint(mouseWorld))
     }
 
     def displayTarget(t: Option[Target]): Unit = {
@@ -163,9 +185,9 @@ trait Game { self: Controller =>
           case _ => "Unknown"
         }
         targetTypeLabel.setText(targetType)
-        targetPositionLabel.setText(t.position.toString)
+        targetPositionLabel.setText(formatPoint(t.position))
         val distance = (t.position - world.ship.position).normal
-        targetDistanceLabel.setText(distance.toString)
+        targetDistanceLabel.setText(formatDouble(distance))
       }
 
       t match {
@@ -181,6 +203,8 @@ trait Game { self: Controller =>
 
       def fire(ship: Ship): Unit = {
         world.ship.weapons.foreach(fireWeapon(_, ship))
+//        console.fireTorpedo(ship.position, world.ship.position)
+        console.firePhaser(ship.position, world.ship.position)
       }
 
       target match {
@@ -188,7 +212,11 @@ trait Game { self: Controller =>
         case _ =>
       }
     }
+
+    def formatDouble(value: Double): String = f"$value%.2f"
+    def formatPoint(p: Point): String = f"(${p.x}%.2f, ${p.y}%.2f)"
+    def formatIntPoint(p: Point): String = s"(${p.x.toInt}, ${p.y.toInt})"
+//      f"(${p.x.toInt}%d, ${p.y.toInt}%d)"
+
   }
 }
-
-

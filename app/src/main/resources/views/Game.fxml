@@ -26,6 +26,8 @@
             <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
             <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
+            <RowConstraints fillHeight="false" minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+            <RowConstraints fillHeight="false" minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
         </rowConstraints>
          <padding>
             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
@@ -39,6 +41,10 @@
             <Label fx:id="targetPositionLabel" GridPane.columnIndex="1" GridPane.rowIndex="2" />
             <Label text="Distance:" GridPane.rowIndex="3" />
             <Label fx:id="targetDistanceLabel" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+            <Label text="World:" GridPane.rowIndex="5" />
+            <Label text="Screen:" GridPane.rowIndex="6" />
+            <Label fx:id="mouseWorldLabel" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+            <Label fx:id="mouseScreenLabel" GridPane.columnIndex="1" GridPane.rowIndex="6" />
          </children>
       </GridPane>
    </children>

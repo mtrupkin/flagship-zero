@@ -4,11 +4,11 @@ import javafx.geometry.Rectangle2D
 import javafx.scene.image.{Image, ImageView}
 
 import org.mtrupkin.math.Size
-import play.api.libs.json.Json
 
-/** size in 8x8 pixels units */
-// TODO change size to pixel units instead of 8x8 pixel units
-case class Sprite(imageView: ImageView, size: Int = 1)
+/** size in pixels units */
+/** smallest sprite size is 8x8 pixels */
+
+case class Sprite(name: String, imageView: ImageView, size: Size)
 
 // Created by mtrupkin on 6/17/2016.
 trait SpriteSet {
@@ -18,8 +18,7 @@ trait SpriteSet {
 
 /** Single image containing multiple sprites */
 class SpriteSheet(val image: Image, val spriteSheetDef: SpriteSheetDef, val scale: Int) extends SpriteSet {
-  val spriteSize = spriteSheetDef.size * scale
-  val spritePixelSize = spriteSize * SPRITE_UNIT_PIXEL
+  val spritePixelSize = spriteSheetDef.size * scale * SPRITE_UNIT_PIXEL
 
   // sprites per row
   val spritePerRow = Math.round(image.getWidth / spritePixelSize)
@@ -31,24 +30,22 @@ class SpriteSheet(val image: Image, val spriteSheetDef: SpriteSheetDef, val scal
     new Rectangle2D(x, y, spritePixelSize, spritePixelSize)
   }
 
-  def sprite(id: Int): Sprite = {
+  def sprite(name: String, id: Int): Sprite = {
     val imageView = new ImageView(image)
     imageView.setViewport(viewport(id))
 
-    Sprite(imageView, spriteSize)
+    Sprite(name, imageView, Size(spritePixelSize, spritePixelSize))
   }
 
   def sprite(name: String): Option[Sprite] = {
-    spriteSheetDef.sprites.find(_.name == name).map(s => sprite(s.tile))
+    spriteSheetDef.sprites.find(_.name == name).map(s => sprite(name, s.tile))
   }
 }
 
 /** Multiple sprites each in its own image */
 class SpriteSheetSliced(val scale: Int, images: Map[String, Image]) extends SpriteSet {
-  def size(image: Image): Int = (image.getWidth / SPRITE_UNIT_PIXEL).toInt
-
   def sprite(sprite: String): Option[Sprite] = images.get(sprite).map {
-    x => Sprite(new ImageView(x),size(x))
+    image => Sprite(sprite, new ImageView(image), Size(image.getWidth.toInt, image.getHeight.toInt))
   }
 }
 

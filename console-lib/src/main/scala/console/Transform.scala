@@ -1,27 +1,33 @@
-package org.mtrupkin.control
+package console
 
 import org.mtrupkin.math.{Point, Size, Vect}
 
+/**
+  * Created by mtrupkin on 8/23/2016.
+  */
+trait Transform {
+  var origin: Point
 
-trait CoordinateConverter {
   def screenSize: Size
   def worldSize: Size
 
   /** converts coordinates with origin in upper left to
     * coordinates with origin in center
     */
-  def toWorld(p: Point)(implicit origin: Point): Point
-  def toWorld(v: Vect): Vect
+  def world(p: Point): Point
+  def world(v: Vect): Vect
 
   /** converts coordinates with origin in center to
     * coordinates with origin in upper left
     */
-  def toScreen(p: Point)(implicit origin: Point): Point
-  def toScreen(v: Vect): Vect
+  def screen(p: Point): Point
+  def screen(v: Vect): Vect
+  def screen(size: Size): Size
 }
 
-class CoordinateConverterImpl(val screenSize: Size, val worldSize: Size)
-  extends CoordinateConverter {
+class TransformImpl(val screenSize: Size, val worldSize: Size)
+  extends Transform {
+  var origin = Point.Origin
 
   val quadrant: Size = worldSize / 2
   val screen2 = screenSize / 2
@@ -34,12 +40,12 @@ class CoordinateConverterImpl(val screenSize: Size, val worldSize: Size)
 
   // converts coordinates with origin in upper left to
   // coordinates with origin in center
-  def toWorld(p: Point)(implicit origin: Point): Point = {
+  def world(p: Point): Point = {
     val p0 = Point(p.x - width, height - p.y)
     (p0 / scale) + origin
   }
 
-  def toWorld(v: Vect): Vect = {
+  def world(v: Vect): Vect = {
     val v0 = v / scale
     val v1 = Vect(v0.x, -v0.y)
     v1
@@ -47,7 +53,7 @@ class CoordinateConverterImpl(val screenSize: Size, val worldSize: Size)
 
   // converts coordinates with origin in center to
   // coordinates with origin in upper left
-  def toScreen(p: Point)(implicit origin: Point): Point = {
+  def screen(p: Point): Point = {
     val p0 = (p - origin) * scale
 
     Point(p0.x + width, height - p0.y)
@@ -55,15 +61,20 @@ class CoordinateConverterImpl(val screenSize: Size, val worldSize: Size)
 
   // converts coordinates with origin in center to
   // coordinates with origin in upper left
-  def toScreen(v: Vect): Vect = {
+  def screen(v: Vect): Vect = {
     val v0 = v * scale
     val v1 = Vect(v0.x, -v0.y)
     v1
   }
 
+  def screen(s: Size): Size = {
+    val v0 = s * scale
+    val v1 = Size(v0.x.toInt, -v0.y.toInt)
+    v1
+  }
 }
 
-object CoordinateConverter {
-  def apply(screen: Size, quadrant: Size): CoordinateConverter =
-    new CoordinateConverterImpl(screen, quadrant)
+object Transform {
+  def apply(screen: Size, quadrant: Size): Transform =
+    new TransformImpl(screen, quadrant)
 }
