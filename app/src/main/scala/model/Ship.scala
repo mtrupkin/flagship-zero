@@ -3,7 +3,7 @@ package model
 import org.mtrupkin.math._
 import spriteset.{Oryx, Sprite}
 
-case class Weapon(name: String, attack: Int)
+case class Weapon(name: String, rating: Int)
 
 object Weapon {
   val Phaser1 = new Weapon("Phaser-1", 2)
@@ -18,8 +18,8 @@ case class Ship(
     faction: String,
     position: Point,
     heading: Vect = Vect.Up,
-    maximumSpeed: Int = 10,
-    maxShields: Int = 10,
+    maximumSpeed: Int = 25,
+    maxShields: Int = 5,
     weapons: Seq[Weapon] = Nil) extends Target {
 
   var shields = maxShields

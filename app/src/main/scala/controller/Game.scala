@@ -4,10 +4,9 @@ import javafx.fxml.FXML
 import javafx.scene.control.Label
 import javafx.scene.layout.Pane
 
-import console.{Transform}
+import console.Transform
 import control.GameConsole
 import model._
-import org.mtrupkin.control.SpriteConsole
 import org.mtrupkin.math.{Point, Size, Vect}
 
 import scalafx.Includes._
@@ -63,7 +62,6 @@ trait Game { self: Controller =>
         onKeyPressed = (e: sfxi.KeyEvent) => handleKeyPressed(e)
       }
 
-
       consolePane.getChildren.clear()
       consolePane.getChildren.add(console)
 
@@ -76,11 +74,15 @@ trait Game { self: Controller =>
 
 
       console.clear()
-      entities.foreach(console.draw(_))
+      entities.foreach {
+        case s: Ship => if (s.shields > 0)  console.draw(s)
+        case e => console.draw(e)
+      }
       console.draw(ship.copy(heading = shipMovement.heading))
       // console.drawVect(ship.position, shipMovement.heading)
       cursorTarget.foreach(console.cursor(_))
       shipTarget.foreach(console.target(_))
+
     }
 
     def handleMouseDragged(event: sfxi.MouseEvent): Unit = {
@@ -198,7 +200,7 @@ trait Game { self: Controller =>
 
     def fire(): Unit = {
       def fireWeapon(weapon: Weapon, ship: Ship): Unit = {
-        (1 to weapon.attack).foreach( _ => if (Random.nextBoolean()) { ship.damage(1) })
+        ship.damage(Combat.attack(weapon.rating))
       }
 
       def fire(ship: Ship): Unit = {
@@ -216,7 +218,5 @@ trait Game { self: Controller =>
     def formatDouble(value: Double): String = f"$value%.2f"
     def formatPoint(p: Point): String = f"(${p.x}%.2f, ${p.y}%.2f)"
     def formatIntPoint(p: Point): String = s"(${p.x.toInt}, ${p.y.toInt})"
-//      f"(${p.x.toInt}%d, ${p.y.toInt}%d)"
-
   }
 }
