@@ -16,8 +16,8 @@ case class Ship(
     name: String,
     subtype: String,
     faction: String,
-    position: Point,
-    heading: Vect = Vect.Up,
+    var position: Point,
+    var heading: Vect = Vect.Up,
     maximumSpeed: Int = 25,
     maxShields: Int = 5,
     weapons: Seq[Weapon] = Nil) extends Target {
@@ -26,13 +26,12 @@ case class Ship(
 
   def damage(amount: Int): Unit = {
     shields -= amount
-    if (shields < 0) { println("Destroyed!!!") }
   }
 
   override def sprite: Sprite = {
     val sprite = Oryx.sprite(s"${Ship.subtypeMap(subtype)}-${Ship.factionMap(faction)}", 2)
 
-    sprite.imageView.setRotate(-heading.unsignedAngle*180/Math.PI)
+//    sprite.imageView.setRotate(-heading.unsignedAngle*180/Math.PI)
     sprite
   }
 }

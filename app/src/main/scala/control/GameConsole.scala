@@ -1,11 +1,11 @@
 package control
 
 import console.Transform
-import model.{Entity, Target}
-import org.mtrupkin.control.SpriteConsole
+import model.{Entity, Ship, Target}
 import org.mtrupkin.math.{Point, Size}
 
-import scalafx.animation.TranslateTransition
+import scala.concurrent.{Future, Promise}
+import scalafx.animation.{FadeTransition, RotateTransition, SequentialTransition, TranslateTransition}
 import scalafx.event.ActionEvent
 import scalafx.scene.{control => sfxc, input => sfxi, layout => sfxl}
 import scalafx.scene.Node
@@ -15,53 +15,92 @@ import scalafx.scene.paint.Color
 import scalafx.scene.shape.{Circle, Line, StrokeLineJoin}
 import scalafx.util.Duration
 import scalafx.Includes._
+import scalafx.scene.image.ImageView
 
 /**
   * Created by mtrupkin on 8/23/2016.
   */
 
-trait GameConsole extends Node {
-  def clear(): Unit
-  def draw(entity: Entity): Unit
+trait GameConsole extends Pane {
+  def update(): Unit
+  def add(entity: Entity): Unit
   def pick(p: Point): Option[Target]
-  def target(entity: Entity): Unit
-  def cursor(entity: Entity): Unit
+
+//  def target(entity: Entity): Unit
+//  def cursor(entity: Entity): Unit
+  def move(entity: Ship, p0: Point): Future[Unit]
+  def displayMove(entity: Ship, p0: Point): Unit
+
+  def destroy(entity: Entity): Future[Unit]
   def fireTorpedo(p1: Point, p0: Point): Unit
-  def firePhaser(p1: Point, p0: Point): Unit
+  def firePhaser(p1: Point, p0: Point): Future[Unit]
 }
 
-class GameConsoleImpl(screen: Size) extends Pane {
+class GameConsoleImpl(val transform: Transform) extends GameConsole {
+  val screen: Size = transform.screenSize
   minWidth = screen.width
   minHeight = screen.height
-  var entities: Seq[(Point, Entity)] = Nil
-
   val canvas = new Canvas(screen.width, screen.height)
   val gc = canvas.graphicsContext2D
-  val sprites = SpriteConsole(screen)
-
   children.add(canvas)
-  children.add(sprites)
 
-  def clear(): Unit = {
-    gc.clearRect(0, 0, screen.width, screen.height)
-    sprites.clear()
-    entities = Nil
+  // transform entity sprite to screen coordinate
+  // adjust so sprite is centered on the position
+  def toSpritePosition(p: Point, size: Size): Point = {
+    val position: Point = transform.screen(p)
+    val adj = size / 2.0
+    position - adj
+  }
+
+  def toSpritePosition(e: Entity): Point = toSpritePosition(e.position, e.sprite.size)
+
+  class EntityNode(val entity: Entity) extends ImageView(entity.sprite.imageView) {
+    def size = entity.sprite.size
+    // center of entity in screen coordinates
+    def position = transform.screen(entity.position)
+    // upper left of entity in screen coordinates
+    def spritePosition = toSpritePosition(entity.position, size)
+
+    val p0 = spritePosition
+    if (screen.in(p0)) {
+      translateX = p0.x
+      translateY = p0.y
+    }
+  }
+
+  class TargetNode(val target: Target) extends EntityNode(target)
+
+  class ShipNode(ship: Ship) extends TargetNode(ship) {
+    rotate = -ship.heading.unsignedAngle*180/Math.PI
+  }
+
+  var entities: List[EntityNode] = Nil
+
+  def update(): Unit = {
+    //gc.clearRect(0,0,screen.width, screen.height)
+    //entities.foreach(_.update())
   }
 
   def pick(p: Point): Option[Target] = {
-    def accept(e: (Point, Target)): Boolean = {
-      val n = (p - e._1).normal
-      n < (e._2.sprite.size / 2).normal
+    def accept(e: EntityNode): Boolean = {
+      val n = (p - e.position).normal
+      n < (e.size / 2).normal
     }
 
     entities.collectFirst {
-      case e: (Point, Target) if accept(e) => e._2
+      case t : TargetNode if accept(t) => t.target
     }
   }
 
-  def draw(p: Point, e: Entity): Unit = {
-    entities = entities :+ (p, e)
-    sprites.drawSprite(p, e.sprite)
+  def add(e: Entity): Unit = {
+    val node = e match {
+      case ship: Ship => new ShipNode(ship)
+      case target: Target => new TargetNode(target)
+      case _ => new EntityNode(e)
+    }
+
+    children.add(node)
+    entities = node :: entities
   }
 
   def drawCrossHair(p: Point, size: Size, color: Color): Unit = {
@@ -98,7 +137,12 @@ class GameConsoleImpl(screen: Size) extends Pane {
     animation.play()
   }
 
-  def firePhaser(p1: Point, p0: Point): Unit = {
+  def firePhaser(_p1: Point, _p0: Point): Future[Unit] = {
+    val promise = Promise[Unit]()
+
+    val p1 = transform.screen(_p1)
+    val p0 = transform.screen(_p0)
+
     val v = (p1 - p0).normal(50)
     val p2 = p1 - v
 
@@ -110,44 +154,88 @@ class GameConsoleImpl(screen: Size) extends Pane {
     }
     children.add(phaser)
 
-    val animation = new TranslateTransition(Duration(500), phaser) {
+    val animation = new TranslateTransition(Duration(200), phaser) {
       fromX = p0.x
       fromY = p0.y
 
       toX = p2.x
       toY = p2.y
 
-      onFinished = (e: ActionEvent) => { children.remove(phaser) }
+      onFinished = (e: ActionEvent) => {
+        children.remove(phaser)
+        promise success ()
+      }
     }
 
     animation.play()
-  }
-}
 
-class TransformConsole(val transform: Transform) extends GameConsoleImpl(transform.screenSize) with GameConsole {
-  import transform._
-
-  def draw(e: Entity): Unit = {
-    super.draw(screen(e.position), e)
+    promise.future
   }
 
-  override def target(entity: Entity): Unit = {
-    super.drawTarget(screen(entity.position), entity.sprite.size)
+  def toEntityNode(entity: Entity): EntityNode = {
+    entities.find(_.entity == entity).get
   }
 
-  override def cursor(entity: Entity): Unit = {
-    super.drawCursor(screen(entity.position), entity.sprite.size)
+  def displayMove(entity: Ship, p: Point): Unit = {
+    gc.clearRect(0,0,screen.width, screen.height)
+    val p1 = transform.screen(p)
+    val p0 = transform.screen(entity.position)
+    gc.stroke = Color.Blue
+    gc.lineWidth = 3
+
+    gc.strokeLine(p1.x, p1.y, p0.x, p0.y)
   }
 
-  override def fireTorpedo(p1: Point, p0: Point): Unit = {
-    super.fireTorpedo(screen(p1), screen(p0))
+  def move(entity: Ship, _p: Point): Future[Unit] = {
+    val p1 = toSpritePosition(_p, entity.sprite.size)//transform.screen(_p)
+    val p0 = toSpritePosition(entity.position, entity.sprite.size)
+
+    val promise = Promise[Unit]()
+    val entityNode = toEntityNode(entity)
+
+    val v = _p - entity.position
+
+    val translate = new TranslateTransition(Duration(500), entityNode) {
+      fromX = p0.x
+      fromY = p0.y
+
+      toX = p1.x
+      toY = p1.y
+    }
+
+    val rotate = new RotateTransition(Duration(500), entityNode) {
+      toAngle = -v.unsignedAngle*180/Math.PI
+    }
+
+    val seqAnimation = new SequentialTransition  {
+      children.add(rotate)
+      children.add(translate)
+      onFinished = (e: ActionEvent) => promise success ()
+    }
+    seqAnimation.play()
+    promise.future
   }
 
-  override def firePhaser(p1: Point, p0: Point): Unit = {
-    super.firePhaser(screen(p1), screen(p0))
+  def destroy(entity: Entity): Future[Unit] = {
+    val promise = Promise[Unit]()
+    val entityNode = toEntityNode(entity)
+    val animation = new FadeTransition(Duration(500), entityNode) {
+      fromValue = 1.0
+      toValue = 0.3
+      cycleCount = 1
+      autoReverse = true
+
+      onFinished = (e: ActionEvent) => {
+        entities = entities.filterNot(_ == entityNode)
+        children.remove(entityNode)
+        promise success ()
+      }
+    }
+    animation.play()
+    promise.future
   }
 }
 
 object GameConsole {
-  def apply(t: Transform): GameConsole = new TransformConsole(t)
+  def apply(t: Transform): GameConsole = new GameConsoleImpl(t)
 }

@@ -13,7 +13,7 @@ class ConsoleApp extends Application {
 		primaryStage.setTitle("Flagship")
 
 		object Controller extends Controller {
-			lazy val initialState: ControllerState = new GameController(World())
+			lazy val initialState: ControllerState = new GameControllerState(World())
 			lazy val stage = primaryStage
 		}
 

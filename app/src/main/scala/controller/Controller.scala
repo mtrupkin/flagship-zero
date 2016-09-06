@@ -1,6 +1,6 @@
 package controller
 
-import javafx.application.Platform
+
 import javafx.fxml.FXMLLoader
 import javafx.scene.control.Label
 import javafx.scene.layout.StackPane
@@ -10,6 +10,7 @@ import javafx.stage.Stage
 import org.mtrupkin.state.StateMachine
 
 import scalafx.animation.AnimationTimer
+import scalafx.application.Platform
 
 /**
  * Created by mtrupkin on 12/15/2014.
@@ -30,7 +31,8 @@ with Game {
   scene.getStylesheets.add(cssLocation)
   stage.setScene(scene)
 
-  var lastPulse: Long = _
+  var lastPulse: Long = System.nanoTime()
+
   val timer = AnimationTimer((now: Long) => {
     val elapsed = ((now-lastPulse)/100000).toInt
     currentState.update(elapsed)
@@ -58,17 +60,8 @@ with Game {
     }
 
     override def onEnter(): Unit = {
-      val t = new Thread(new Runnable {
-        override def run(): Unit = {
-          val newRoot = root // potentially long-running
-          Platform.runLater(new Runnable {
-            override def run(): Unit = scene.setRoot(newRoot)
-          })
-
-        }
-      })
-
-      t.run()
+      // potentially long-running
+      Platform.runLater(() => scene.setRoot(root))
     }
   }
 }

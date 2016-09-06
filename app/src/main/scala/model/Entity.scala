@@ -5,7 +5,7 @@ import spriteset.{Oryx, Sprite}
 
 /** Created by mtrupkin on 6/30/2016. */
 trait Entity {
-  def position: Point
+  var position: Point
   def sprite: Sprite
 }
 
@@ -13,7 +13,7 @@ trait Target extends Entity {
   def name: String
 }
 
-case class StaticEntity(position: Point, sprite: Sprite) extends Entity
+case class StaticEntity(var position: Point, sprite: Sprite) extends Entity
 
 trait Subtype extends Target {
   def subtype: String
@@ -21,7 +21,7 @@ trait Subtype extends Target {
   def sprite(): Sprite = Oryx.sprite(subtypeMap(subtype))
 }
 
-case class Star(name: String, subtype: String, position: Point) extends Subtype {
+case class Star(name: String, subtype: String, var position: Point) extends Subtype {
   // star classes
   // O hot
   // B hot super-giant
@@ -41,7 +41,7 @@ case class Star(name: String, subtype: String, position: Point) extends Subtype 
   )
 }
 
-case class Planet(name: String, subtype: String, position: Point) extends Subtype {
+case class Planet(name: String, subtype: String, var position: Point) extends Subtype {
   // M earth-like
   // A aquatic
   // B barren

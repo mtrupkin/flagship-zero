@@ -8,14 +8,15 @@ class ShipMovement(ship: Ship) {
   var heading: Vect = ship.heading.normal(1.0)
   protected var speed: Double = 0.0
 
-  def move(): Ship = {
+  def move(): Unit = {
     val velocity: Vect = heading.normal(speed)
 
     if (velocity.normal > EPSILON) {
       val p = ship.position + velocity
-      ship.copy(position = p, heading = velocity.normalize)
+      ship.position = p
+      ship.heading = velocity.normalize
     } else {
-      ship.copy(heading = heading)
+      ship.heading = heading
     }
   }
 
