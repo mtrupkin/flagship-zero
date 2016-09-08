@@ -1,42 +1,36 @@
 package controller
 
-import model.Ship
+
 import org.mtrupkin.math._
-import Math._
 
-class ShipMovement(ship: Ship) {
-  var heading: Vect = ship.heading.normal(1.0)
-  protected var speed: Double = 0.0
+class CircularMotion(position: Point, heading: Vect) {
+  val PI2 = Math.PI / 2.0
+  def apply(cursor: Vect): Vect = {
+    val d = cursor - position
+    val d2 = d.normal / 2.0
 
-  def move(): Unit = {
-    val velocity: Vect = heading.normal(speed)
+    val r0 = Vect(heading.y, -heading.x)
+    val theta = r0.unsignedAngle(d)
 
-    if (velocity.normal > EPSILON) {
-      val p = ship.position + velocity
-      ship.position = p
-      ship.heading = velocity.normalize
-    } else {
-      ship.heading = heading
-    }
+    val radius = d2 / Math.cos(theta)
+    println(s"d2: $d2 radius: $radius theta: $theta")
+    r0.normal(radius)
   }
+}
 
-  def rotate(cursor: Vect): Unit = {
-    val input = cursor - ship.position
-    val normal = input.normal
+class TieredMotion(position: Point, heading: Vect) {
 
-    if (normal > EPSILON) {
-      heading = input.normal(ship.maximumSpeed)
-      speed = 0.0
+  def apply(cursor: Vect): Vect = {
+    val r = cursor - position
+    val distance = r.normal
+    val theta = heading.angle(r)
+    val maxDistance = Math.abs(theta) match {
+      case t if (t < Math.PI/16) => 50
+      case t if (t < Math.PI/4) => 25
+//      case t if (t < Math.PI/4) => 15
+      case _ => 10
     }
-  }
 
-  def move(cursor: Vect): Unit = {
-    val input = cursor - ship.position
-    val normal = input.normal
-
-    if (normal > EPSILON) {
-      speed = min(ship.maximumSpeed, normal)
-      heading = input.normal(speed)
-    }
+    r.normal(Math.min(distance, maxDistance))
   }
 }

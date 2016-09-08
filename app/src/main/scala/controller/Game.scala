@@ -34,7 +34,8 @@ trait GameController {
   def fire(source: Ship, destination: Ship): Future[Unit]
   // world coordinates
   def move(source: Ship, p: Point): Future[Unit]
-
+  // world coordinates
+  def displayMove(p: Point): Unit
 
   // screen coordinates
   def pick(p: Point): Option[Target]
@@ -52,7 +53,6 @@ trait Game { self: Controller =>
   class GameControllerState(val world: World) extends ControllerState with GameController {
     val name = "Game"
 
-    var shipMovement = new ShipMovement(world.ship)
     var shipTarget: Option[Target] = None
     var cursorTarget: Option[Target] = None
 
@@ -122,11 +122,6 @@ trait Game { self: Controller =>
       fpsLabel.setText(s"$fps")
     }
 
-    def handleMouseReleased(event: sfxi.MouseEvent): Unit = {
-      shipMovement.move()
-      shipMovement = new ShipMovement(world.ship)
-    }
-
     def world(p: Point): Point = {
       implicit val origin = world.ship.position
       transform.world(p)
@@ -162,17 +157,29 @@ trait Game { self: Controller =>
 
     def pick(p: Point): Option[Target] = console.pick(p)
 
-    def move(source: Ship, p: Point): Future[Unit] = {
+    def move(source: Ship, p1: Point): Future[Unit] = {
+      val motion = new TieredMotion(world.ship.position, world.ship.heading)
+      val v = motion(p1)
+      val p = source.position + v
       console.move(source, p).map( _ => {
+        val heading = p - source.position
         source.position = p
+        source.heading = heading.normalize
       })
+    }
+
+    // screen coordinates
+    def displayMove(p: Point): Unit = {
+//      val motion = new CircularMotion(world.ship.position, world.ship.heading)
+      val motion = new TieredMotion(world.ship.position, world.ship.heading)
+      val v = motion(p)
+      console.displayMove(world.ship.position, v)
     }
 
     def fire(source: Ship, destination: Ship): Future[Unit] = {
       def fireWeapon(weapon: Weapon, ship: Ship): Unit = {
         ship.damage(Combat.attack(weapon.rating))
       }
-
 
       source.weapons.foreach(fireWeapon(_, destination))
 //        console.fireTorpedo(ship.position, world.ship.position)

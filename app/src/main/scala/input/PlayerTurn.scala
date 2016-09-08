@@ -7,6 +7,7 @@ import scalafx.scene.input.KeyCode._
 import scalafx.scene.input.{MouseButton, MouseEvent}
 import scalafx.scene.{input => sfxi}
 import scala.concurrent.ExecutionContext.Implicits.global
+import scalafx.scene.shape.MoveTo
 
 /**
   * Created by mtrupkin on 9/1/2016.
@@ -56,7 +57,9 @@ trait PlayerTurn { self: ConsoleInputMachine =>
     }
 
     override def mouseMove(event: MouseEvent): Unit = {
-      controller.console.displayMove(controller.world.ship, toWorld(event))
+      controller.displayMouse(toPoint(event))
+      controller.displayMove(toWorld(event))
+
     }
 
     override def mouseClicked(event: MouseEvent): Unit = {

@@ -9,5 +9,6 @@ licenses += ("MIT", url("http://www.opensource.org/licenses/mit-license.html"))
 fork in run := true
 
 libraryDependencies ++= Seq(
+  "org.scalatest" %% "scalatest" % "2.2.6" % "test",
   "org.scalafx" %% "scalafx" % "8.0.92-R10"
 )

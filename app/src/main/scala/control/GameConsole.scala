@@ -2,7 +2,7 @@ package control
 
 import console.Transform
 import model.{Entity, Ship, Target}
-import org.mtrupkin.math.{Point, Size}
+import org.mtrupkin.math.{Point, Size, Vect}
 
 import scala.concurrent.{Future, Promise}
 import scalafx.animation.{FadeTransition, RotateTransition, SequentialTransition, TranslateTransition}
@@ -12,7 +12,7 @@ import scalafx.scene.Node
 import scalafx.scene.canvas.Canvas
 import scalafx.scene.layout.Pane
 import scalafx.scene.paint.Color
-import scalafx.scene.shape.{Circle, Line, StrokeLineJoin}
+import scalafx.scene.shape._
 import scalafx.util.Duration
 import scalafx.Includes._
 import scalafx.scene.image.ImageView
@@ -29,7 +29,7 @@ trait GameConsole extends Pane {
 //  def target(entity: Entity): Unit
 //  def cursor(entity: Entity): Unit
   def move(entity: Ship, p0: Point): Future[Unit]
-  def displayMove(entity: Ship, p0: Point): Unit
+  def displayMove(p1: Point, v: Vect): Unit
 
   def destroy(entity: Entity): Future[Unit]
   def fireTorpedo(p1: Point, p0: Point): Unit
@@ -43,6 +43,11 @@ class GameConsoleImpl(val transform: Transform) extends GameConsole {
   val canvas = new Canvas(screen.width, screen.height)
   val gc = canvas.graphicsContext2D
   children.add(canvas)
+
+  val movePath = new Path() {
+    stroke = Color.Blue
+  }
+  children.add(movePath)
 
   // transform entity sprite to screen coordinate
   // adjust so sprite is centered on the position
@@ -118,6 +123,18 @@ class GameConsoleImpl(val transform: Transform) extends GameConsole {
 
   def drawCursor(p: Point, size: Size): Unit = drawCrossHair(p, size, Color.YellowGreen)
 
+  def displayMove(_p0: Point, _v: Vect): Unit = {
+    val p0 = transform.screen(_p0)
+    val _p1 = _p0 + _v
+    val p1 = transform.screen(_p1)
+
+
+    movePath.elements.clear()
+    val moveTo = MoveTo(p0.x, p0.y)
+    val move = LineTo(p1.x, p1.y)
+    movePath.elements.addAll(moveTo, move)
+  }
+
   def fireTorpedo(p1: Point, p0: Point): Unit = {
     val torpedo = new Circle() {
       radius = 5
@@ -174,16 +191,6 @@ class GameConsoleImpl(val transform: Transform) extends GameConsole {
 
   def toEntityNode(entity: Entity): EntityNode = {
     entities.find(_.entity == entity).get
-  }
-
-  def displayMove(entity: Ship, p: Point): Unit = {
-    gc.clearRect(0,0,screen.width, screen.height)
-    val p1 = transform.screen(p)
-    val p0 = transform.screen(entity.position)
-    gc.stroke = Color.Blue
-    gc.lineWidth = 3
-
-    gc.strokeLine(p1.x, p1.y, p0.x, p0.y)
   }
 
   def move(entity: Ship, _p: Point): Future[Unit] = {
