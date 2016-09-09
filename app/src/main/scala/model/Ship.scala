@@ -3,10 +3,29 @@ package model
 import org.mtrupkin.math._
 import spriteset.{Oryx, Sprite}
 
-case class Weapon(name: String, rating: Int)
+trait Weapon {
+  def name: String
+  def rating: Int
+  def attack(range: Double): Int
+}
+
+class Phaser1(val rating: Int) extends Weapon {
+  val name = "Phaser-1"
+  val killZone = 30
+
+  def attack(range: Double): Int = {
+    val hits = Combat.attack(rating, 2)
+    val damage = range match {
+      case x if (x <= killZone) => hits * 2
+      case _ => hits
+    }
+    println(s"damage: $damage")
+    damage
+  }
+}
 
 object Weapon {
-  val Phaser1 = new Weapon("Phaser-1", 2)
+  val Phaser1a = new Phaser1(2)
 }
 
 /**
@@ -19,7 +38,7 @@ case class Ship(
     var position: Point,
     var heading: Vect = Vect.Up,
     maximumSpeed: Int = 25,
-    maxShields: Int = 5,
+    maxShields: Int = 30,
     weapons: Seq[Weapon] = Nil) extends Target {
 
   var shields = maxShields

@@ -1,5 +1,6 @@
 package input
 
+import controller.Game
 import model.{Ship, Target}
 import org.mtrupkin.math.Point
 
@@ -7,66 +8,67 @@ import scalafx.scene.input.KeyCode._
 import scalafx.scene.input.{MouseButton, MouseEvent}
 import scalafx.scene.{input => sfxi}
 import scala.concurrent.ExecutionContext.Implicits.global
-import scalafx.scene.shape.MoveTo
 
 /**
   * Created by mtrupkin on 9/1/2016.
   */
-trait PlayerTurn { self: ConsoleInputMachine =>
-  class PlayerTurnState extends ConsoleInputState {
+trait PlayerInputMachine { self: Game =>
+  trait PlayerTurn { self: GameControllerState =>
+    class PlayerTurnState extends ConsoleInputState {
+      override def onEnter() = println("player turn")
 
-    def fire(target: Option[Target]): Unit = {
-      target match {
-        case Some(ship: Ship) => {
-          val newState = new AnimationWaitState(this)
+      def performFire(target: Option[Target]): Unit = {
+        target match {
+          case Some(ship: Ship) => {
+            val newState = new AnimationWaitState(this)
 
-          val future = controller.fire(controller.world.ship, ship)
-          future.onSuccess { case _ => newState.finished() }
+            val future = fire(world.ship, ship)
+            future.onSuccess { case _ => newState.finished() }
 
-          changeState(newState)
+            changeState(newState)
+          }
+          case _ =>
         }
-        case _ =>
       }
-    }
 
-    def move(p: Point): Unit = {
-      val newState = new AnimationWaitState(this)
-      val future = controller.move(controller.world.ship, p)
-      future.onSuccess { case _ => newState.finished() }
-      changeState(newState)
-    }
-
-    override def keyPressed(event: sfxi.KeyEvent): Unit = {
-      event.consume()
-      val code = event.code
-      code match {
-        case Space => fire(controller.target)
-        case Escape => controller.escape()
-        case _ =>
+      def performMove(p: Point): Unit = {
+        val newState = new AnimationWaitState(this)
+        val future = move(world.ship, p)
+        future.onSuccess { case _ => newState.finished() }
+        changeState(newState)
       }
-    }
 
-    def mousePrimaryPressed(event: MouseEvent): Unit = {
-      val target = pick(event)
-      fire(target)
-    }
+      override def keyPressed(event: sfxi.KeyEvent): Unit = {
+        event.consume()
+        val code = event.code
+        code match {
+          case Space => performFire(target)
+          case Escape => escape()
+          case _ =>
+        }
+      }
 
-    def mouseSecondaryPressed(event: MouseEvent): Unit = {
-      val target = toWorld(event)
-      move(target)
-    }
+      def mousePrimaryPressed(event: MouseEvent): Unit = {
+        val target = pick(toPoint(event))
+        performFire(target)
+      }
 
-    override def mouseMove(event: MouseEvent): Unit = {
-      controller.displayMouse(toPoint(event))
-      controller.displayMove(toWorld(event))
+      def mouseSecondaryPressed(event: MouseEvent): Unit = {
+        val target = toWorld(event)
+        performMove(target)
+      }
 
-    }
+      override def mouseMove(event: MouseEvent): Unit = {
+        super.mouseMove(event)
+        displayMove(toWorld(event))
+      }
 
-    override def mouseClicked(event: MouseEvent): Unit = {
-      event.button match {
-        case MouseButton.Primary => mousePrimaryPressed(event)
-        case MouseButton.Secondary => mouseSecondaryPressed(event)
-        case _ =>
+      override def mouseClicked(event: MouseEvent): Unit = {
+        event.button match {
+          case MouseButton.Primary => mousePrimaryPressed(event)
+          case MouseButton.Secondary => mouseSecondaryPressed(event)
+          case _ =>
+        }
       }
     }
   }

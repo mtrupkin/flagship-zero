@@ -20,23 +20,7 @@ import scalafx.scene.image.ImageView
 /**
   * Created by mtrupkin on 8/23/2016.
   */
-
-trait GameConsole extends Pane {
-  def update(): Unit
-  def add(entity: Entity): Unit
-  def pick(p: Point): Option[Target]
-
-//  def target(entity: Entity): Unit
-//  def cursor(entity: Entity): Unit
-  def move(entity: Ship, p0: Point): Future[Unit]
-  def displayMove(p1: Point, v: Vect): Unit
-
-  def destroy(entity: Entity): Future[Unit]
-  def fireTorpedo(p1: Point, p0: Point): Unit
-  def firePhaser(p1: Point, p0: Point): Future[Unit]
-}
-
-class GameConsoleImpl(val transform: Transform) extends GameConsole {
+class GameConsole(val transform: Transform) extends Pane {
   val screen: Size = transform.screenSize
   minWidth = screen.width
   minHeight = screen.height
@@ -233,6 +217,7 @@ class GameConsoleImpl(val transform: Transform) extends GameConsole {
       autoReverse = true
 
       onFinished = (e: ActionEvent) => {
+        println("destroy finished")
         entities = entities.filterNot(_ == entityNode)
         children.remove(entityNode)
         promise success ()
@@ -244,5 +229,5 @@ class GameConsoleImpl(val transform: Transform) extends GameConsole {
 }
 
 object GameConsole {
-  def apply(t: Transform): GameConsole = new GameConsoleImpl(t)
+  def apply(t: Transform): GameConsole = new GameConsole(t)
 }

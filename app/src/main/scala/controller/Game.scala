@@ -6,15 +6,13 @@ import javafx.scene.layout.Pane
 
 import console.Transform
 import control.GameConsole
-import input.ConsoleInputMachine
+import input._
 import model._
 import org.mtrupkin.math.{Point, Size, Vect}
 
 import scala.collection.mutable
 import scala.concurrent.Future
 import scalafx.Includes._
-import scalafx.scene.input.KeyCode
-import scalafx.scene.input.KeyCode._
 import scalafx.scene.{control => sfxc, input => sfxi, layout => sfxl}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scalafx.application.Platform
@@ -26,31 +24,11 @@ class FiniteQueue(maxSize: Int) extends mutable.Queue[Double] {
   }
 }
 
-trait GameController {
-  def world: World
-  def target: Option[Target]
-  def console: GameConsole
 
-  def fire(source: Ship, destination: Ship): Future[Unit]
-  // world coordinates
-  def move(source: Ship, p: Point): Future[Unit]
-  // world coordinates
-  def displayMove(p: Point): Unit
-
-  // screen coordinates
-  def pick(p: Point): Option[Target]
-  // screen to world coordinates
-  def world(p: Point): Point
-  // screen coordinates
-  def displayMouse(p: Point): Unit
-  // screen coordinates
-  def displayTarget(p: Point): Unit
-
-  def escape(): Unit
-}
-
-trait Game { self: Controller =>
-  class GameControllerState(val world: World) extends ControllerState with GameController {
+trait Game extends InputMachine {
+  self: Controller =>
+  class GameControllerState(val world: World) extends ControllerState
+    with GameInputMachine {
     val name = "Game"
 
     var shipTarget: Option[Target] = None
@@ -74,12 +52,10 @@ trait Game { self: Controller =>
     val transform = Transform(screenSize, worldSize)
 
     val console = GameConsole(transform)
-    val consoleInput = new ConsoleInputMachine(this)
 
     def initialize(): Unit = {
       {
         import console._
-        import consoleInput._
 
         onMouseClicked = (e: sfxi.MouseEvent) => mouseClicked(e)
         onMousePressed = (e: sfxi.MouseEvent) => mousePressed(e)
@@ -158,6 +134,8 @@ trait Game { self: Controller =>
     def pick(p: Point): Option[Target] = console.pick(p)
 
     def move(source: Ship, p1: Point): Future[Unit] = {
+      console.movePath.elements.clear()
+
       val motion = new TieredMotion(world.ship.position, world.ship.heading)
       val v = motion(p1)
       val p = source.position + v
@@ -177,21 +155,27 @@ trait Game { self: Controller =>
     }
 
     def fire(source: Ship, destination: Ship): Future[Unit] = {
-      def fireWeapon(weapon: Weapon, ship: Ship): Unit = {
-        ship.damage(Combat.attack(weapon.rating))
+      println("controller fire")
+      println(s"shields: ${destination.shields}")
+      def fireWeapon(weapon: Weapon): Unit = {
+        val range = (destination.position - source.position).normal
+        destination.damage(weapon.attack(range))
       }
 
-      source.weapons.foreach(fireWeapon(_, destination))
+      source.weapons.foreach(fireWeapon(_))
 //        console.fireTorpedo(ship.position, world.ship.position)
-      console.firePhaser(destination.position, source.position).map( _ => {
-        if (destination.shields < 0) {
-          console.destroy(destination).map(_ => {
+
+      val phaserAnim = console.firePhaser(destination.position, source.position)
+      val destroyAnim = if (destination.shields < 0) {
+          console.destroy(destination).map( _ => {
             shipTarget = None
             cursorTarget = None
             Platform.runLater(displayTarget(shipTarget))
-          })
-        }
-      } )
+          } )
+        } else Future.successful(())
+
+      val q = phaserAnim.flatMap( _ => destroyAnim)
+      q
     }
 
     def displayMouse(mouseScreen: Point): Unit = {
