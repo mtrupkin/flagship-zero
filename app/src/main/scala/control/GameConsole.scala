@@ -60,7 +60,7 @@ class GameConsole(val transform: Transform) extends Pane {
   class TargetNode(val target: Target) extends EntityNode(target)
 
   class ShipNode(ship: Ship) extends TargetNode(ship) {
-    rotate = -ship.heading.unsignedAngle*180/Math.PI
+    rotate = -ship.heading.theta*180/Math.PI
   }
 
   var entities: List[EntityNode] = Nil
@@ -195,7 +195,9 @@ class GameConsole(val transform: Transform) extends Pane {
     }
 
     val rotate = new RotateTransition(Duration(500), entityNode) {
-      toAngle = -v.unsignedAngle*180/Math.PI
+      val radians = entity.heading.angle(v)
+      val theta = -radians*180/Math.PI
+      byAngle = theta
     }
 
     val seqAnimation = new SequentialTransition  {
@@ -217,7 +219,6 @@ class GameConsole(val transform: Transform) extends Pane {
       autoReverse = true
 
       onFinished = (e: ActionEvent) => {
-        println("destroy finished")
         entities = entities.filterNot(_ == entityNode)
         children.remove(entityNode)
         promise success ()
@@ -226,8 +227,4 @@ class GameConsole(val transform: Transform) extends Pane {
     animation.play()
     promise.future
   }
-}
-
-object GameConsole {
-  def apply(t: Transform): GameConsole = new GameConsole(t)
 }

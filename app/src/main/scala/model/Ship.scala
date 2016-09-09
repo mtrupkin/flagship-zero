@@ -48,10 +48,7 @@ case class Ship(
   }
 
   override def sprite: Sprite = {
-    val sprite = Oryx.sprite(s"${Ship.subtypeMap(subtype)}-${Ship.factionMap(faction)}", 2)
-
-//    sprite.imageView.setRotate(-heading.unsignedAngle*180/Math.PI)
-    sprite
+    Oryx.sprite(s"${Ship.subtypeMap(subtype)}-${Ship.factionMap(faction)}", 2)
   }
 }
 

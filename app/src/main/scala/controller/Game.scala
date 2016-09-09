@@ -51,7 +51,7 @@ trait Game extends InputMachine {
     val worldSize = screenSize / spriteset.SPRITE_UNIT_PIXEL
     val transform = Transform(screenSize, worldSize)
 
-    val console = GameConsole(transform)
+    val console = new GameConsole(transform)
 
     def initialize(): Unit = {
       {
@@ -155,8 +155,6 @@ trait Game extends InputMachine {
     }
 
     def fire(source: Ship, destination: Ship): Future[Unit] = {
-      println("controller fire")
-      println(s"shields: ${destination.shields}")
       def fireWeapon(weapon: Weapon): Unit = {
         val range = (destination.position - source.position).normal
         destination.damage(weapon.attack(range))

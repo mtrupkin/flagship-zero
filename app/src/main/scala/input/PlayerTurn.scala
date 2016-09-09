@@ -15,8 +15,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 trait PlayerInputMachine { self: Game =>
   trait PlayerTurn { self: GameControllerState =>
     class PlayerTurnState extends ConsoleInputState {
-      override def onEnter() = println("player turn")
-
       def performFire(target: Option[Target]): Unit = {
         target match {
           case Some(ship: Ship) => {
@@ -58,9 +56,12 @@ trait PlayerInputMachine { self: Game =>
         performMove(target)
       }
 
-      override def mouseMove(event: MouseEvent): Unit = {
-        super.mouseMove(event)
-        displayMove(toWorld(event))
+      override def mouseDragged(event: MouseEvent): Unit = {
+        if (event.secondaryButtonDown) displayMove(toWorld(event))
+      }
+
+      override def mousePressed(event: MouseEvent): Unit = {
+        if (event.secondaryButtonDown) displayMove(toWorld(event))
       }
 
       override def mouseClicked(event: MouseEvent): Unit = {

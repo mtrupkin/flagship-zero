@@ -15,7 +15,7 @@ case class Vect(x: Double, y: Double) {
   def unary_- = Vect(-x, -y)
 
   import Math._
-  def unsignedAngle: Double = atan2(y, x)
+  def theta: Double = atan2(y, x)
   def normal: Double = sqrt(x*x + y*y)
   def rotate(theta: Double): Vect = {
     val x0 = x * cos(theta) - y * sin(theta)
