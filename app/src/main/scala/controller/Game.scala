@@ -146,12 +146,23 @@ trait Game extends InputMachine {
       })
     }
 
-    // screen coordinates
-    def displayMove(p: Point): Unit = {
+
+    def displayMove(_p: Point): Unit = {
 //      val motion = new CircularMotion(world.ship.position, world.ship.heading)
       val motion = new TieredMotion(world.ship.position, world.ship.heading)
-      val v = motion(p)
-      console.displayMove(world.ship.position, v)
+      val v = motion(_p)
+      val r: Double = world.ship.turnRadius
+      val turn = world.ship.heading.perpendicularClockwise.normal(r)
+
+      val p1 = _p - world.ship.position - turn
+      val theta3 = p1.theta
+      val d1 = p1.normal
+      val theta2 = Math.acos(r/d1)
+
+      val p0 = Point.polar(r, theta2+theta3) + turn + world.ship.position
+
+      console.displayTurnMove(world.ship.position, p0, turn)
+      console.displayLineMove(p0, _p-p0)
     }
 
     def fire(source: Ship, destination: Ship): Future[Unit] = {

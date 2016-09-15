@@ -21,6 +21,7 @@ case class Point(x: Double, y: Double) {
 
 object Point {
   val Origin: Point = Point(0, 0)
+  def polar(r: Double, theta: Double) = Point(r*Math.cos(theta), r*Math.sin(theta))
 
   // conversions
   implicit def toTuple(p: Point): (Double, Double) = (p.x, p.y)

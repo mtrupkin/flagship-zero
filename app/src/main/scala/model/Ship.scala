@@ -39,6 +39,7 @@ case class Ship(
     var heading: Vect = Vect.Up,
     maximumSpeed: Int = 25,
     maxShields: Int = 30,
+    turnRadius: Int = 2,
     weapons: Seq[Weapon] = Nil) extends Target {
 
   var shields = maxShields

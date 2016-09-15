@@ -31,6 +31,8 @@ case class Vect(x: Double, y: Double) {
 
   def unsignedAngle(v: Vect): Double = arcCosine(this.dot(v) / (this.normal * v.normal))
   def determinant(v: Vect): Double = x*v.y - y*v.x
+  def perpendicularCounterClockwise: Vect = Vect(-y, x)
+  def perpendicularClockwise: Vect = Vect(y, -x)
 }
 
 object Vect {
