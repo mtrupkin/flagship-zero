@@ -27,7 +27,7 @@ class WorldImpl() extends World {
   val ship3 = Ship("Defiant", "military", "friendly",Point(30, -30))
   val reliant = Ship("Reliant", "science", "enemy", Point(20, 20))
 
-  var ship = Ship("Enterprise", "explorer", "friendly", Point(-35, -35), weapons = List(Phaser1a))
+  var ship = Ship("Enterprise", "explorer", "friendly", Point(-35, -35), weapons = List(Phaser1a, Torpedo1a))
 
   val background: Seq[Entity] = {
     for {

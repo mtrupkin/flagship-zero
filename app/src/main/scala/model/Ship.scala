@@ -3,14 +3,19 @@ package model
 import org.mtrupkin.math._
 import spriteset.{Oryx, Sprite}
 
+import scalafx.beans.property.{ObjectProperty, StringProperty}
+
 trait Weapon {
   def name: String
   def rating: Int
   def attack(range: Double): Int
+
+  val nameProp = new StringProperty(this, "name", name)
+  val ratingProp = new ObjectProperty(this, "rating", rating)
 }
 
 class Phaser1(val rating: Int) extends Weapon {
-  val name = "Phaser-1"
+  lazy val name = "Phaser-1"
   val killZone = 30
 
   def attack(range: Double): Int = {
@@ -24,8 +29,18 @@ class Phaser1(val rating: Int) extends Weapon {
   }
 }
 
+class Torpedo1(val rating: Int) extends Weapon {
+  lazy val name = "Torpedo-1"
+  def attack(range: Double): Int = {
+    val damage = Combat.attack(rating, 2)
+    println(s"damage: $damage")
+    damage
+  }
+}
+
 object Weapon {
   val Phaser1a = new Phaser1(2)
+  val Torpedo1a = new Torpedo1(3)
 }
 
 /**

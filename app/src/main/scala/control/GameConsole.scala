@@ -112,26 +112,6 @@ class GameConsole(val transform: Transform) extends Pane {
 
   def drawCursor(p: Point, size: Size): Unit = drawCrossHair(p, size, Color.YellowGreen)
 
-  def displayTurnMove(_p0: Point, _p1: Point, _r0: Vect): Unit = {
-    def toDeg(rads: Double) = rads*180/Math.PI
-
-    val _center = _p0 + _r0
-
-    val theta0 = (-_r0).theta
-    val _r1 = _p1 - _center
-    val theta1 = _r1.theta
-    val length = theta1-theta0
-
-    val r = transform.screen(_r0)
-    val center = transform.screen(_center)
-    moveArc.radiusX = r.normal
-    moveArc.radiusY = r.normal
-    moveArc.centerX = center.x
-    moveArc.centerY = center.y
-    moveArc.startAngle = toDeg(theta0)
-    moveArc.length = toDeg(length)
-  }
-
   def displayLineMove(_p0: Point, _v: Vect): Unit = {
     val p0 = transform.screen(_p0)
     val _p1 = _p0 + _v
@@ -211,7 +191,7 @@ class GameConsole(val transform: Transform) extends Pane {
 
     val v = _p - entity.position
 
-    val translate = new TranslateTransition(Duration(500), entityNode) {
+    val translate = new TranslateTransition(Duration(250), entityNode) {
       fromX = p0.x
       fromY = p0.y
 
@@ -219,7 +199,7 @@ class GameConsole(val transform: Transform) extends Pane {
       toY = p1.y
     }
 
-    val rotate = new RotateTransition(Duration(500), entityNode) {
+    val rotate = new RotateTransition(Duration(250), entityNode) {
       val radians = entity.heading.angle(v)
       val theta = -radians*180/Math.PI
       byAngle = theta
