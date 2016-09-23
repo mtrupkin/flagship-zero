@@ -20,7 +20,7 @@ trait PlayerInputMachine { self: Game =>
           case Some(ship: Ship) => {
             val newState = new AnimationWaitState(this)
 
-            val future = fire(world.ship, ship)
+            val future = fire(ship)
             future.onSuccess { case _ => newState.finished() }
 
             changeState(newState)
@@ -37,6 +37,7 @@ trait PlayerInputMachine { self: Game =>
       }
 
       override def keyPressed(event: sfxi.KeyEvent): Unit = {
+        super.keyPressed(event)
         event.consume()
         val code = event.code
         code match {

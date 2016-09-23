@@ -14,7 +14,7 @@ trait Weapon {
   val ratingProp = new ObjectProperty(this, "rating", rating)
 }
 
-class Phaser1(val rating: Int) extends Weapon {
+case class Phaser1(rating: Int) extends Weapon {
   lazy val name = "Phaser-1"
   val killZone = 30
 
@@ -29,7 +29,7 @@ class Phaser1(val rating: Int) extends Weapon {
   }
 }
 
-class Torpedo1(val rating: Int) extends Weapon {
+case class Torpedo1(rating: Int) extends Weapon {
   lazy val name = "Torpedo-1"
   def attack(range: Double): Int = {
     val damage = Combat.attack(rating, 2)

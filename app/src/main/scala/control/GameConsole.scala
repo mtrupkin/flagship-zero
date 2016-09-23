@@ -124,7 +124,12 @@ class GameConsole(val transform: Transform) extends Pane {
     movePath.elements.addAll(moveTo, move)
   }
 
-  def fireTorpedo(p1: Point, p0: Point): Unit = {
+  def fireTorpedo(p1_ : Point, p0_ : Point): Future[Unit] = {
+    val p1 = transform.screen(p1_)
+    val p0 = transform.screen(p0_)
+
+    val promise = Promise[Unit]()
+
     val torpedo = new Circle() {
       radius = 5
       fill = Color.Red
@@ -133,14 +138,22 @@ class GameConsole(val transform: Transform) extends Pane {
     children.add(torpedo)
   //    torpedo.relocate(p0.x + 5, p0.y + 5)
 
-    val animation = new TranslateTransition(Duration(500), torpedo)
-    animation.fromX = p0.x
-    animation.fromY = p0.y
+    val animation = new TranslateTransition(Duration(500), torpedo) {
+      fromX = p0.x
+      fromY = p0.y
 
-    animation.toX = p1.x
-    animation.toY = p1.y
+      toX = p1.x
+      toY = p1.y
+
+      onFinished = (e: ActionEvent) => {
+        children.remove(torpedo)
+        promise.success()
+      }
+    }
 
     animation.play()
+
+    promise.future
   }
 
   def firePhaser(_p1: Point, _p0: Point): Future[Unit] = {

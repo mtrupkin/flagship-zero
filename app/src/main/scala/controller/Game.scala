@@ -39,6 +39,7 @@ trait Game extends InputMachine {
 
     def target: Option[Target] = shipTarget.orElse(cursorTarget)
 
+    @FXML var rootPane: Pane = _
     @FXML var consolePane: Pane = _
     @FXML var targetLabel: Label = _
     @FXML var targetTypeLabel: Label = _
@@ -56,6 +57,7 @@ trait Game extends InputMachine {
     val transform = Transform(screenSize, worldSize)
 
     val console = new GameConsole(transform)
+    var weaponsTable: sfxc.TableView[Weapon] = _
 
     def initialize(): Unit = {
       {
@@ -69,7 +71,7 @@ trait Game extends InputMachine {
         onMouseDragExited = (e: sfxi.MouseEvent) => mouseDragExited(e)
         onMouseReleased = (e: sfxi.MouseEvent) => mouseReleased(e)
 
-        new sfxl.Pane(consolePane) {
+        new sfxl.Pane(rootPane) {
           filterEvent(sfxi.KeyEvent.KeyPressed) {
             (event: sfxi.KeyEvent) => keyPressed(event)
           }
@@ -91,10 +93,9 @@ trait Game extends InputMachine {
         prefWidth = 200
       }
 
-      val weaponsTable = new sfxc.TableView[Weapon](weapons) {
+      weaponsTable = new sfxc.TableView[Weapon](weapons) {
         columns ++= List(col1, col2)
         prefHeight = 200
-//        styleClass.add("dark")
         selectionModel().selectionMode = SelectionMode.Multiple
       }
 
@@ -182,16 +183,26 @@ trait Game extends InputMachine {
       console.displayLineMove(world.ship.position, v)
     }
 
-    def fire(source: Ship, destination: Ship): Future[Unit] = {
+    def fire(destination: Ship): Future[Unit] = {
+      val ship = world.ship
+
       def fireWeapon(weapon: Weapon): Unit = {
-        val range = (destination.position - source.position).normal
+        val range = (destination.position - ship.position).normal
         destination.damage(weapon.attack(range))
       }
 
-      source.weapons.foreach(fireWeapon(_))
-//        console.fireTorpedo(ship.position, world.ship.position)
+      val weapons = weaponsTable.selectionModel().getSelectedItems.toList
+      val animations = weapons.map {
+        case torpedo: Torpedo1 => {
+          fireWeapon(torpedo)
+          console.fireTorpedo(destination.position, ship.position)
+        }
+        case phaser: Phaser1 => {
+          fireWeapon(phaser)
+          console.firePhaser(destination.position, ship.position)
+        }
+      }
 
-      val phaserAnim = console.firePhaser(destination.position, source.position)
       val destroyAnim = if (destination.shields < 0) {
           console.destroy(destination).map( _ => {
             shipTarget = None
@@ -200,7 +211,7 @@ trait Game extends InputMachine {
           } )
         } else Future.successful(())
 
-      val q = phaserAnim.flatMap( _ => destroyAnim)
+      val q = Future.sequence(animations).flatMap( _ => destroyAnim)
       q
     }
 
