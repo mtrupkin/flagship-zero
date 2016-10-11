@@ -195,7 +195,7 @@ trait Game extends InputMachine {
       val animations = weapons.map {
         case torpedo: Torpedo1 => {
           fireWeapon(torpedo)
-          console.fireTorpedo(destination.position, ship.position)
+          console.fire(ship, Projectile("torp", Point.Origin, 1, 1), destination.position/2)
         }
         case phaser: Phaser1 => {
           fireWeapon(phaser)

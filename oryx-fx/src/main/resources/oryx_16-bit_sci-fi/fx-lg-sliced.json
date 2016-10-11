@@ -1,0 +1,6 @@
+{
+  "location": "sliced/FX_lg_sliced/images/oryx_16bit_scifi_FX_lg_",
+  "sprites": [
+    { "name": "projectile-1", "tile": "34"}
+  ]
+}

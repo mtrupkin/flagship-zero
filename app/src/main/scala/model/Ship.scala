@@ -43,6 +43,12 @@ object Weapon {
   val Torpedo1a = new Torpedo1(3)
 }
 
+case class Projectile(name: String, var position: Point, attack: Int, defense: Int) extends Target {
+   def sprite: Sprite = {
+    Oryx.sprite(s"projectile-1", 1)
+  }
+}
+
 /**
   * Created by mtrupkin on 7/21/2016.
   */

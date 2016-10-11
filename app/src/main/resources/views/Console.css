@@ -4,7 +4,7 @@
 
 .dark, .dark .label, .dark .text {
     -fx-background-color: black;
-    -fx-font-size: 18pt;
+    -fx-font-size: 12pt;
     -fx-font-family: "Segoe UI Semibold";
     -fx-text-fill: white;
 }
@@ -124,7 +124,7 @@
 }
 
 .table-view .text  {
-    -fx-font-size: 18pt;
+    -fx-font-size: 12pt;
     -fx-font-family: "Segoe UI Semibold";
     -fx-text-fill: white;
     -fx-alignment: center-left;

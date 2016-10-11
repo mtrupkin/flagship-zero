@@ -1,4 +1,4 @@
 {
   "sheets": ["vehicles-sheet"],
-  "sliced": ["world_extra-sliced"]
+  "sliced": ["world_extra-sliced", "fx-lg-sliced"]
 }

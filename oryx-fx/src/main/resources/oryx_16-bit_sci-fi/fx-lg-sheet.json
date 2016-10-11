@@ -1,0 +1,11 @@
+{
+  "filename": "oryx_16bit_scifi_FX_lg_trans.png",
+  "size": 4,
+  "sprites": [
+    { "name": "projectile-1", "tile": 33},
+    { "name": "projectile-2", "tile": 41},
+    { "name": "projectile-3", "tile": 49},
+    { "name": "projectile-4", "tile": 57},
+    { "name": "projectile-5", "tile": 65}
+  ]
+}
