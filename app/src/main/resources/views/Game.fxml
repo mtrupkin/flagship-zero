@@ -90,11 +90,11 @@
                   </TableView>
                </content>
             </TitledPane>
-            <VBox alignment="BOTTOM_CENTER" spacing="20.0" styleClass="dark" VBox.vgrow="ALWAYS">
-               <padding>
-                  <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
-               </padding>
-            </VBox>
+            <TitledPane>
+               <content>
+                  <HBox fx:id="energyPane" prefHeight="100.0" prefWidth="200.0" />
+               </content>
+            </TitledPane>
             <TitledPane text="Info">
                <content>
                   <GridPane styleClass="dark">

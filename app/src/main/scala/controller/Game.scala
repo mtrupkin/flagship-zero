@@ -3,7 +3,7 @@ package controller
 import javafx.fxml.FXML
 import javafx.scene.control.cell.PropertyValueFactory
 import javafx.scene.control.{Label, TableColumn, TableView, TitledPane}
-import javafx.scene.layout.Pane
+import javafx.scene.layout.{HBox, Pane}
 
 import console.Transform
 import control.GameConsole
@@ -49,6 +49,8 @@ trait Game extends InputMachine {
     @FXML var mouseScreenLabel: Label = _
     @FXML var fpsLabel: Label = _
     @FXML var weaponsPane: TitledPane = _
+    @FXML var energyPane: Pane = _
+    var energyPaneFX: sfxl.Pane = _
 
     val screenSize = Size(720, 720)
     //  // world unit size is one sprite unit
@@ -58,6 +60,7 @@ trait Game extends InputMachine {
 
     val console = new GameConsole(transform)
     var weaponsTable: sfxc.TableView[Weapon] = _
+    var energyButtons: Seq[sfxc.Button] = _
 
     def initialize(): Unit = {
       {
@@ -101,6 +104,11 @@ trait Game extends InputMachine {
 
       weaponsPane.content = weaponsTable
 
+      energyButtons = Range.inclusive(1, 5).map(e=>new sfxc.Button(s"$e"))
+      energyPaneFX = new sfxl.Pane(energyPane) {
+        children = energyButtons
+      }
+
       consolePane.getChildren.clear()
       consolePane.getChildren.add(console)
 
@@ -111,6 +119,7 @@ trait Game extends InputMachine {
         world.entities.foreach(console.add(_))
         console.add(world.ship)
       }
+
     }
 
     val fpsQueue = new FiniteQueue(10000)
@@ -195,7 +204,9 @@ trait Game extends InputMachine {
       val animations = weapons.map {
         case torpedo: Torpedo1 => {
           fireWeapon(torpedo)
-          console.fire(ship, Projectile("torp", Point.Origin, 1, 1), destination.position/2)
+          val mid = ((destination.position - ship.position) / 2) + ship.position
+          val torp = Projectile("Torpedo", mid, 1, 1)
+          console.fire(ship, torp, mid)
         }
         case phaser: Phaser1 => {
           fireWeapon(phaser)

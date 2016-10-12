@@ -58,6 +58,7 @@ case class Ship(
     faction: String,
     var position: Point,
     var heading: Vect = Vect.Up,
+    var energy: Int = 4,
     maximumSpeed: Int = 25,
     maxShields: Int = 30,
     turnRadius: Int = 2,
