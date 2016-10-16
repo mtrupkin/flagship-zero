@@ -11,6 +11,35 @@ import scala.util.Random
 trait World {
   var entities: Seq[Entity]
   var ship: Ship
+
+  def update(elapsed: Int): Unit = {
+    entities.foreach(_.update(elapsed))
+
+    if (turnActive) {
+      turnElapsed += elapsed
+      println(turnElapsed)
+      if (turnElapsed > 5000) {
+        turnActive = false
+        entities.foreach(_.deactivate())
+        completed()
+        println("completed")
+      }
+    }
+  }
+
+  var completed: () => Unit = _
+  var turnActive = false
+  var turnElapsed: Int = _
+  def startTurn(completed: () => Unit) = {
+    turnElapsed = 0
+    turnActive = true
+    this.completed = completed
+  }
+
+  def activate(completed: () => Unit) = {
+    entities.foreach(_.activate())
+    startTurn(completed)
+  }
 }
 
 class WorldImpl() extends World {

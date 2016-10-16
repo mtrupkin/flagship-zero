@@ -7,6 +7,24 @@ import spriteset.{Oryx, Sprite}
 trait Entity {
   var position: Point
   def sprite: Sprite
+
+  var active: Boolean = false
+
+  def update(elapsed: Int): Unit = {
+    if (active) {
+      active(elapsed)
+    }
+  }
+
+  def active(elapsed: Int): Unit = {}
+
+  def activate(): Unit = {
+    active = true
+  }
+
+  def deactivate(): Unit = {
+    active = false
+  }
 }
 
 trait Target extends Entity {

@@ -25,7 +25,7 @@ trait InputMachine extends PlayerInputMachine with WaitInputMachine {
   self: Game =>
   trait GameInputMachine extends StateMachine
     with PlayerTurn
-    with AnimationWait {
+    with PlayerWait {
     self: GameControllerState =>
 
     type StateType = ConsoleInputState

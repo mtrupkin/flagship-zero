@@ -36,6 +36,13 @@ case class Torpedo1(rating: Int) extends Weapon {
     println(s"damage: $damage")
     damage
   }
+
+  def fire(position: Point, target: Entity): Projectile = {
+    val heading = target.position - position
+    val projectile = Projectile("Torp1", position, heading, 1, 1)
+    projectile.activate()
+    projectile
+  }
 }
 
 object Weapon {
@@ -43,8 +50,15 @@ object Weapon {
   val Torpedo1a = new Torpedo1(3)
 }
 
-case class Projectile(name: String, var position: Point, attack: Int, defense: Int) extends Target {
-   def sprite: Sprite = {
+case class Projectile(
+    name: String,
+    var position: Point,
+    var heading: Vect,
+    attack: Int,
+    defense: Int) extends Movable {
+  val speed: Int = 100
+
+  def sprite: Sprite = {
     Oryx.sprite(s"projectile-1", 1)
   }
 }
@@ -68,6 +82,10 @@ case class Ship(
 
   def damage(amount: Int): Unit = {
     shields -= amount
+  }
+
+  def fire(weapon: Torpedo1, target: Entity): Projectile = {
+    weapon.fire(position, target)
   }
 
   override def sprite: Sprite = {

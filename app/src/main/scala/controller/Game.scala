@@ -125,14 +125,11 @@ trait Game extends InputMachine {
     val fpsQueue = new FiniteQueue(10000)
 
     override def update(elapsed: Int): Unit = {
-      console.update()
-//      cursorTarget.foreach(console.cursor(_))
-//      shipTarget.foreach(console.target(_))
+      world.update(elapsed)
+      console.update(elapsed)
 
       fpsQueue.enqueueFinite(10000.0/elapsed)
-
       val fps = (fpsQueue.sum / fpsQueue.size).toInt
-
       fpsLabel.setText(s"$fps")
     }
 
@@ -192,7 +189,7 @@ trait Game extends InputMachine {
       console.displayLineMove(world.ship.position, v)
     }
 
-    def fire(destination: Ship): Future[Unit] = {
+    def fire(destination: Ship): Unit = {
       val ship = world.ship
 
       def fireWeapon(weapon: Weapon): Unit = {
@@ -204,26 +201,15 @@ trait Game extends InputMachine {
       val animations = weapons.map {
         case torpedo: Torpedo1 => {
           fireWeapon(torpedo)
-          val mid = ((destination.position - ship.position) / 2) + ship.position
-          val torp = Projectile("Torpedo", mid, 1, 1)
-          console.fire(ship, torp, mid)
+          val torp = ship.fire(torpedo, destination)
+          console.add(torp)
+          world.entities = world.entities :+ torp
         }
         case phaser: Phaser1 => {
           fireWeapon(phaser)
           console.firePhaser(destination.position, ship.position)
         }
       }
-
-      val destroyAnim = if (destination.shields < 0) {
-          console.destroy(destination).map( _ => {
-            shipTarget = None
-            cursorTarget = None
-            Platform.runLater(displayTarget(shipTarget))
-          } )
-        } else Future.successful(())
-
-      val q = Future.sequence(animations).flatMap( _ => destroyAnim)
-      q
     }
 
     def displayMouse(mouseScreen: Point): Unit = {

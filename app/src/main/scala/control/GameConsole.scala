@@ -31,12 +31,7 @@ class GameConsole(val transform: Transform) extends Pane {
   val movePath = new Path() {
     stroke = Color.Blue
   }
-  val moveArc = new Arc {
-    stroke = Color.Blue
-    `type` = ArcType.Open
-  }
   children.add(movePath)
-  children.add(moveArc)
 
   // transform entity sprite to screen coordinate
   // adjust so sprite is centered on the position
@@ -55,24 +50,29 @@ class GameConsole(val transform: Transform) extends Pane {
     // upper left of entity in screen coordinates
     def spritePosition = toSpritePosition(entity.position, size)
 
-    val p0 = spritePosition
-    if (screen.in(p0)) {
-      translateX = p0.x
-      translateY = p0.y
+    def update(elapsed: Int): Unit = {
+      val p0 = spritePosition
+      if (screen.in(p0)) {
+        translateX = p0.x
+        translateY = p0.y
+      }
     }
   }
 
   class TargetNode(val target: Target) extends EntityNode(target)
 
   class ShipNode(ship: Ship) extends TargetNode(ship) {
-    rotate = -ship.heading.theta*180/Math.PI
+    override def update(elapsed: Int): Unit = {
+      super.update(elapsed)
+      rotate = -ship.heading.theta * 180 / Math.PI
+    }
   }
 
-  var entities: List[EntityNode] = Nil
+  var nodes: List[EntityNode] = Nil
 
-  def update(): Unit = {
+  def update(elapsed: Int): Unit = {
     //gc.clearRect(0,0,screen.width, screen.height)
-    //entities.foreach(_.update())
+    nodes.foreach(_.update(elapsed))
   }
 
   def pick(p: Point): Option[Target] = {
@@ -81,7 +81,7 @@ class GameConsole(val transform: Transform) extends Pane {
       n < (e.size / 2).normal
     }
 
-    entities.collectFirst {
+    nodes.collectFirst {
       case t : TargetNode if accept(t) => t.target
     }
   }
@@ -94,7 +94,7 @@ class GameConsole(val transform: Transform) extends Pane {
     }
 
     children.add(node)
-    entities = node :: entities
+    nodes = node :: nodes
   }
 
   def drawCrossHair(p: Point, size: Size, color: Color): Unit = {
@@ -122,38 +122,6 @@ class GameConsole(val transform: Transform) extends Pane {
     val moveTo = MoveTo(p0.x, p0.y)
     val move = LineTo(p1.x, p1.y)
     movePath.elements.addAll(moveTo, move)
-  }
-
-  def fireTorpedo(p1_ : Point, p0_ : Point): Future[Unit] = {
-    val p1 = transform.screen(p1_)
-    val p0 = transform.screen(p0_)
-
-    val promise = Promise[Unit]()
-
-    val torpedo = new Circle() {
-      radius = 5
-      fill = Color.Red
-    }
-
-    children.add(torpedo)
-  //    torpedo.relocate(p0.x + 5, p0.y + 5)
-
-    val animation = new TranslateTransition(Duration(500), torpedo) {
-      fromX = p0.x
-      fromY = p0.y
-
-      toX = p1.x
-      toY = p1.y
-
-      onFinished = (e: ActionEvent) => {
-        children.remove(torpedo)
-        promise.success()
-      }
-    }
-
-    animation.play()
-
-    promise.future
   }
 
   def firePhaser(_p1: Point, _p0: Point): Future[Unit] = {
@@ -192,7 +160,7 @@ class GameConsole(val transform: Transform) extends Pane {
   }
 
   def toEntityNode(entity: Entity): EntityNode = {
-    entities.find(_.entity == entity).get
+    nodes.find(_.entity == entity).get
   }
 
   def move(entity: Ship, _p: Point): Future[Unit] = {
@@ -227,39 +195,6 @@ class GameConsole(val transform: Transform) extends Pane {
     promise.future
   }
 
-  def fire(entity: Ship, projectile: Projectile, _p: Point): Future[Unit] = {
-    val p1 = toSpritePosition(_p, entity.sprite.size)//transform.screen(_p)
-    val p0 = toSpritePosition(entity.position, entity.sprite.size)
-
-    val promise = Promise[Unit]()
-    add(projectile)
-    val projectileNode = toEntityNode(projectile)
-
-    val v = _p - entity.position
-
-    val translate = new TranslateTransition(Duration(250), projectileNode) {
-      fromX = p0.x
-      fromY = p0.y
-
-      toX = p1.x
-      toY = p1.y
-    }
-
-    val rotate = new RotateTransition(Duration(250), projectileNode) {
-      val radians = entity.heading.angle(v)
-      val theta = -radians*180/Math.PI
-      byAngle = theta
-    }
-
-    val seqAnimation = new SequentialTransition  {
-      children.add(rotate)
-      children.add(translate)
-      onFinished = (e: ActionEvent) => promise success ()
-    }
-    seqAnimation.play()
-    promise.future
-  }
-
   def destroy(entity: Entity): Future[Unit] = {
     val promise = Promise[Unit]()
     val entityNode = toEntityNode(entity)
@@ -270,7 +205,7 @@ class GameConsole(val transform: Transform) extends Pane {
       autoReverse = true
 
       onFinished = (e: ActionEvent) => {
-        entities = entities.filterNot(_ == entityNode)
+        nodes = nodes.filterNot(_ == entityNode)
         children.remove(entityNode)
         promise success ()
       }

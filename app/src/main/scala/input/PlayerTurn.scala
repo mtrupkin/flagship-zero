@@ -18,10 +18,10 @@ trait PlayerInputMachine { self: Game =>
       def performFire(target: Option[Target]): Unit = {
         target match {
           case Some(ship: Ship) => {
-            val newState = new AnimationWaitState(this)
+            val newState = new PlayerWaitState(this)
 
-            val future = fire(ship)
-            future.onSuccess { case _ => newState.finished() }
+            fire(ship)
+            world.activate(newState.finished)
 
             changeState(newState)
           }
@@ -30,7 +30,7 @@ trait PlayerInputMachine { self: Game =>
       }
 
       def performMove(p: Point): Unit = {
-        val newState = new AnimationWaitState(this)
+        val newState = new PlayerWaitState(this)
         val future = move(world.ship, p)
         future.onSuccess { case _ => newState.finished() }
         changeState(newState)
