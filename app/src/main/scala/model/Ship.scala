@@ -81,6 +81,8 @@ case class Ship(
     var position: Point,
     var heading: Vect = Vect.Up,
     var energy: Int = 4,
+    var power: Int = 3,
+    var maxPower: Int = 3,
     maximumSpeed: Int = 25,
     maxShields: Int = 30,
     turnRadius: Int = 2,

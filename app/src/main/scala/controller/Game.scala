@@ -112,30 +112,8 @@ trait Game extends InputMachine {
 
       consolePane.setFocusTraversable(true)
 
-      actionUpdate()
     }
 
-    def actionUpdate(): Unit = {
-      def powerUpdate(): Unit = {
-        val powerButtons = (1 to world.ship.maxPower).map(i => {
-          new sfxc.Button(s"$i") {
-            disable = (i > world.ship.power)
-          }
-        })
-        energyPaneFX.children = powerButtons
-      }
-
-    override def update(elapsed: Int): Unit = {
-      world.update(elapsed)
-      console.update(elapsed, world.entities)
-
-      fpsQueue.enqueueFinite(10000.0/elapsed)
-      val fps = (fpsQueue.sum / fpsQueue.size).toInt
-      fpsLabel.setText(s"$fps")
-      powerUpdate()
-    }
-
-    val fpsQueue = new FiniteQueue(10000)
 
     override def update(elapsed: Int): Unit = {
       def fpsUpdate(): Unit = {
@@ -144,9 +122,25 @@ trait Game extends InputMachine {
         fpsLabel.setText(s"$fps")
       }
 
+      def powerUpdate(): Unit = {
+        val powerButtons = (1 to player.maxPower).map(i => {
+          new sfxc.Button(s"$i") {
+            disable = (i > player.power)
+          }
+        })
+        energyPaneFX.children = powerButtons
+      }
+
       world.update(elapsed)
-      console.update()
+      console.update(elapsed, world.entities)
+
+      powerUpdate()
+      fpsUpdate()
     }
+
+    val fpsQueue = new FiniteQueue(10000)
+
+
 
     def world(p: Point): Point = {
       implicit val origin = player.position
@@ -184,8 +178,6 @@ trait Game extends InputMachine {
     def pick(p: Point): Option[Target] = console.pick(p)
 
     def move(source: Ship, p1: Point): Future[Unit] = {
-      console.movePath.elements.clear()
-
       val motion = new TieredMotion(player.position, player.heading)
       val v = motion(p1)
       val p = source.position + v
@@ -194,11 +186,7 @@ trait Game extends InputMachine {
         source.position = p
         source.heading = heading.normalize
       })
-    def move(p1: Point): Unit = {
-      val p = world.ship.move(p1)
-      actionUpdate()
     }
-
 
     def displayMove(p : Point): Unit = {
 //      val motion = new CircularMotion(world.ship.position, world.ship.heading)

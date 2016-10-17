@@ -21,7 +21,7 @@ trait PlayerInputMachine { self: Game =>
             val newState = new PlayerWaitState(this)
 
             fire(ship)
-            world.activate(newState.finished)
+            world.startTurn(newState.finished)
 
             changeState(newState)
           }
