@@ -48,6 +48,11 @@
                   </GridPane>
                </content>
             </TitledPane>
+            <TitledPane collapsible="false" text="Power">
+               <content>
+                  <HBox fx:id="energyPane" styleClass="dark" />
+               </content>
+            </TitledPane>
             <TitledPane collapsible="false" text="Target">
                <content>
                   <GridPane styleClass="dark">
@@ -82,17 +87,12 @@
             </TitledPane>
             <TitledPane fx:id="weaponsPane" collapsible="false" layoutX="10.0" layoutY="10.0" text="Weapons">
                <content>
-                  <TableView fx:id="weaponsTableView" prefHeight="200.0" styleClass="dark">
+                  <TableView fx:id="weaponsTableView" styleClass="dark">
                     <columns>
                       <TableColumn fx:id="weaponsTableCol1" prefWidth="75.0" text="Name" />
                       <TableColumn fx:id="weaponsTableCol2" prefWidth="143.0" text="Attack" />
                     </columns>
                   </TableView>
-               </content>
-            </TitledPane>
-            <TitledPane>
-               <content>
-                  <HBox fx:id="energyPane" prefHeight="100.0" prefWidth="200.0" />
                </content>
             </TitledPane>
             <TitledPane text="Info">

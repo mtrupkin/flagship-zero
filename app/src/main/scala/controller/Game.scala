@@ -60,7 +60,6 @@ trait Game extends InputMachine {
 
     val console = new GameConsole(transform)
     var weaponsTable: sfxc.TableView[Weapon] = _
-    var energyButtons: Seq[sfxc.Button] = _
 
     def player: Ship = world.player
 
@@ -106,19 +105,25 @@ trait Game extends InputMachine {
 
       weaponsPane.content = weaponsTable
 
-      energyButtons = Range.inclusive(1, 5).map(e=>new sfxc.Button(s"$e"))
-      energyPaneFX = new sfxl.Pane(energyPane) {
-        children = energyButtons
-      }
+      energyPaneFX = new sfxl.Pane(energyPane)
 
       consolePane.getChildren.clear()
       consolePane.getChildren.add(console)
 
       consolePane.setFocusTraversable(true)
 
+      actionUpdate()
     }
 
-    val fpsQueue = new FiniteQueue(10000)
+    def actionUpdate(): Unit = {
+      def powerUpdate(): Unit = {
+        val powerButtons = (1 to world.ship.maxPower).map(i => {
+          new sfxc.Button(s"$i") {
+            disable = (i > world.ship.power)
+          }
+        })
+        energyPaneFX.children = powerButtons
+      }
 
     override def update(elapsed: Int): Unit = {
       world.update(elapsed)
@@ -127,6 +132,20 @@ trait Game extends InputMachine {
       fpsQueue.enqueueFinite(10000.0/elapsed)
       val fps = (fpsQueue.sum / fpsQueue.size).toInt
       fpsLabel.setText(s"$fps")
+      powerUpdate()
+    }
+
+    val fpsQueue = new FiniteQueue(10000)
+
+    override def update(elapsed: Int): Unit = {
+      def fpsUpdate(): Unit = {
+        fpsQueue.enqueueFinite(10000.0/elapsed)
+        val fps = (fpsQueue.sum / fpsQueue.size).toInt
+        fpsLabel.setText(s"$fps")
+      }
+
+      world.update(elapsed)
+      console.update()
     }
 
     def world(p: Point): Point = {
@@ -175,6 +194,9 @@ trait Game extends InputMachine {
         source.position = p
         source.heading = heading.normalize
       })
+    def move(p1: Point): Unit = {
+      val p = world.ship.move(p1)
+      actionUpdate()
     }
 
 
@@ -191,6 +213,7 @@ trait Game extends InputMachine {
       def fireWeapon(weapon: Weapon): Unit = {
         val range = (destination.position - ship.position).normal
         destination.damage(weapon.attack(range))
+        ship.power -= 1
       }
 
       val weapons = weaponsTable.selectionModel().getSelectedItems.toList

@@ -12,8 +12,7 @@ import model.World
 class ConsoleApp extends Application {
 	override def start(primaryStage: Stage) {
 		val icon = getClass.getResourceAsStream("/icons/app.png")
-//		primaryStage.setTitle("Flagship")
-		primaryStage.setTitle("")
+		primaryStage.setTitle("Flagship Zero")
 		primaryStage.getIcons.add(new Image(icon))
 
 		object Controller extends Controller {

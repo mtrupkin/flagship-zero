@@ -185,6 +185,8 @@ class GameConsole(val transform: Transform) extends Pane {
   }
 
   def move(entity: Ship, _p: Point): Future[Unit] = {
+    movePath.elements.clear()
+
     val p1 = toSpritePosition(_p, entity.sprite.size)//transform.screen(_p)
     val p0 = toSpritePosition(entity.position, entity.sprite.size)
 
