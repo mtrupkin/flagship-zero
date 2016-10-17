@@ -13,7 +13,14 @@ trait World {
   var player: Ship
 
   def update(elapsed: Int): Unit = {
-    entities.foreach(_.update(elapsed))
+    entities.foreach({ e =>
+      e.update(elapsed)
+
+      if (e.active) {
+        e.active(elapsed)
+      }
+    })
+
 
     if (turnActive) {
       turnElapsed += elapsed

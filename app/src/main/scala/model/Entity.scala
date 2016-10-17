@@ -10,11 +10,7 @@ trait Entity {
 
   var active: Boolean = false
 
-  def update(elapsed: Int): Unit = {
-    if (active) {
-      active(elapsed)
-    }
-  }
+  def update(elapsed: Int): Unit = {}
 
   def active(elapsed: Int): Unit = {}
 
