@@ -22,7 +22,7 @@ trait Entity {
     active = true
   }
 
-  def deactivate(): Unit = {
+  def endTurn(): Unit = {
     active = false
   }
 }

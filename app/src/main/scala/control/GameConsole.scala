@@ -4,6 +4,7 @@ import console.Transform
 import model.{Entity, Projectile, Ship, Target}
 import org.mtrupkin.math.{Point, Size, Vect}
 
+import scala.collection.mutable
 import scala.concurrent.{Future, Promise}
 import scalafx.animation.{FadeTransition, RotateTransition, SequentialTransition, TranslateTransition}
 import scalafx.event.ActionEvent
@@ -50,6 +51,8 @@ class GameConsole(val transform: Transform) extends Pane {
     // upper left of entity in screen coordinates
     def spritePosition = toSpritePosition(entity.position, size)
 
+    update(0)
+
     def update(elapsed: Int): Unit = {
       val p0 = spritePosition
       if (screen.in(p0)) {
@@ -68,11 +71,29 @@ class GameConsole(val transform: Transform) extends Pane {
     }
   }
 
-  var nodes: List[EntityNode] = Nil
+  class ProjectileNode(p: Projectile) extends TargetNode(p) {
+    override def update(elapsed: Int): Unit = {
+      super.update(elapsed)
+    }
+  }
 
-  def update(elapsed: Int): Unit = {
+  var nodes: scala.collection.mutable.HashSet[EntityNode] = mutable.HashSet.empty
+
+  def update(elapsed: Int, entities: Seq[Entity]): Unit = {
     //gc.clearRect(0,0,screen.width, screen.height)
-    nodes.foreach(_.update(elapsed))
+    val removed = nodes.filterNot(n => entities.exists(e => n.entity == e))
+    removed.foreach(r => {
+      children -= r
+      nodes -= r
+    })
+
+    entities.foreach(e => {
+      val node = findEntityNode(e)
+      node match {
+        case Some(n) => n.update(elapsed)
+        case None => createNode(e)
+      }
+    })
   }
 
   def pick(p: Point): Option[Target] = {
@@ -86,15 +107,15 @@ class GameConsole(val transform: Transform) extends Pane {
     }
   }
 
-  def add(e: Entity): Unit = {
+  def createNode(e: Entity): Unit = {
     val node = e match {
       case ship: Ship => new ShipNode(ship)
+      case projectile: Projectile => new ProjectileNode(projectile)
       case target: Target => new TargetNode(target)
       case _ => new EntityNode(e)
     }
-
-    children.add(node)
-    nodes = node :: nodes
+    nodes += node
+    children += node
   }
 
   def drawCrossHair(p: Point, size: Size, color: Color): Unit = {
@@ -159,8 +180,8 @@ class GameConsole(val transform: Transform) extends Pane {
     promise.future
   }
 
-  def toEntityNode(entity: Entity): EntityNode = {
-    nodes.find(_.entity == entity).get
+  def findEntityNode(entity: Entity): Option[EntityNode] = {
+    nodes.find(_.entity == entity)
   }
 
   def move(entity: Ship, _p: Point): Future[Unit] = {
@@ -168,7 +189,7 @@ class GameConsole(val transform: Transform) extends Pane {
     val p0 = toSpritePosition(entity.position, entity.sprite.size)
 
     val promise = Promise[Unit]()
-    val entityNode = toEntityNode(entity)
+    val entityNode = findEntityNode(entity).get
 
     val v = _p - entity.position
 
@@ -197,7 +218,7 @@ class GameConsole(val transform: Transform) extends Pane {
 
   def destroy(entity: Entity): Future[Unit] = {
     val promise = Promise[Unit]()
-    val entityNode = toEntityNode(entity)
+    val entityNode = findEntityNode(entity).get
     val animation = new FadeTransition(Duration(500), entityNode) {
       fromValue = 1.0
       toValue = 0.3

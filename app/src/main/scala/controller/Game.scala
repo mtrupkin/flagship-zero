@@ -62,6 +62,8 @@ trait Game extends InputMachine {
     var weaponsTable: sfxc.TableView[Weapon] = _
     var energyButtons: Seq[sfxc.Button] = _
 
+    def player: Ship = world.player
+
     def initialize(): Unit = {
       {
         import console._
@@ -82,7 +84,7 @@ trait Game extends InputMachine {
       }
 
       val weapons = ObservableBuffer[Weapon]()
-      weapons.appendAll(world.ship.weapons)
+      weapons.appendAll(player.weapons)
 
       val col1 =  new sfxc.TableColumn[Weapon, String] {
         text = "Name"
@@ -114,19 +116,13 @@ trait Game extends InputMachine {
 
       consolePane.setFocusTraversable(true)
 
-      // initialize console
-      {
-        world.entities.foreach(console.add(_))
-        console.add(world.ship)
-      }
-
     }
 
     val fpsQueue = new FiniteQueue(10000)
 
     override def update(elapsed: Int): Unit = {
       world.update(elapsed)
-      console.update(elapsed)
+      console.update(elapsed, world.entities)
 
       fpsQueue.enqueueFinite(10000.0/elapsed)
       val fps = (fpsQueue.sum / fpsQueue.size).toInt
@@ -134,7 +130,7 @@ trait Game extends InputMachine {
     }
 
     def world(p: Point): Point = {
-      implicit val origin = world.ship.position
+      implicit val origin = player.position
       transform.world(p)
     }
 
@@ -156,7 +152,7 @@ trait Game extends InputMachine {
         }
         targetTypeLabel.setText(targetType)
         targetPositionLabel.setText(formatPoint(t.position))
-        val distance = (t.position - world.ship.position).normal
+        val distance = (t.position - player.position).normal
         targetDistanceLabel.setText(formatDouble(distance))
       }
 
@@ -171,7 +167,7 @@ trait Game extends InputMachine {
     def move(source: Ship, p1: Point): Future[Unit] = {
       console.movePath.elements.clear()
 
-      val motion = new TieredMotion(world.ship.position, world.ship.heading)
+      val motion = new TieredMotion(player.position, player.heading)
       val v = motion(p1)
       val p = source.position + v
       console.move(source, p).map( _ => {
@@ -184,13 +180,13 @@ trait Game extends InputMachine {
 
     def displayMove(p : Point): Unit = {
 //      val motion = new CircularMotion(world.ship.position, world.ship.heading)
-      val motion = new TieredMotion(world.ship.position, world.ship.heading)
+      val motion = new TieredMotion(player.position, player.heading)
       val v = motion(p)
-      console.displayLineMove(world.ship.position, v)
+      console.displayLineMove(player.position, v)
     }
 
     def fire(destination: Ship): Unit = {
-      val ship = world.ship
+      val ship = player
 
       def fireWeapon(weapon: Weapon): Unit = {
         val range = (destination.position - ship.position).normal
@@ -201,9 +197,7 @@ trait Game extends InputMachine {
       val animations = weapons.map {
         case torpedo: Torpedo1 => {
           fireWeapon(torpedo)
-          val torp = ship.fire(torpedo, destination)
-          console.add(torp)
-          world.entities = world.entities :+ torp
+          world.fire(ship, torpedo, destination)
         }
         case phaser: Phaser1 => {
           fireWeapon(phaser)

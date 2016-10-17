@@ -31,7 +31,7 @@ trait PlayerInputMachine { self: Game =>
 
       def performMove(p: Point): Unit = {
         val newState = new PlayerWaitState(this)
-        val future = move(world.ship, p)
+        val future = move(world.player, p)
         future.onSuccess { case _ => newState.finished() }
         changeState(newState)
       }

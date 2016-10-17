@@ -10,19 +10,19 @@ import scala.util.Random
   */
 trait World {
   var entities: Seq[Entity]
-  var ship: Ship
+  var player: Ship
 
   def update(elapsed: Int): Unit = {
     entities.foreach(_.update(elapsed))
 
     if (turnActive) {
       turnElapsed += elapsed
-      println(turnElapsed)
-      if (turnElapsed > 5000) {
+//      println(turnElapsed)
+      if (turnElapsed > 1000) {
         turnActive = false
-        entities.foreach(_.deactivate())
+        entities.foreach(_.endTurn())
         completed()
-        println("completed")
+//        println("turn completed")
       }
     }
   }
@@ -40,6 +40,17 @@ trait World {
     entities.foreach(_.activate())
     startTurn(completed)
   }
+
+  def fire(ship: Ship, weapon: Weapon, target: Target): Unit = {
+    weapon match {
+      case projectileWeapon: ProjectileWeapon => {
+        val shot = projectileWeapon.fire(ship.position, target)
+        entities = entities :+ shot
+      }
+      case directWeapon: DirectWeapon => directWeapon.fire(target)
+
+    }
+  }
 }
 
 class WorldImpl() extends World {
@@ -55,7 +66,7 @@ class WorldImpl() extends World {
   val star1 = Star("Sol", "G", Point(0, 0))
   val reliant = Ship("Reliant", "science", "enemy", Point(5, 35), heading = Vect.Down)
 
-  var ship = Ship("Enterprise", "explorer", "friendly", Point(-5, -35), weapons = List(Phaser1a, Torpedo1a))
+  var player = Ship("Enterprise", "explorer", "friendly", Point(-5, -35), weapons = List(Phaser1a, Torpedo1a))
 
   val background: Seq[Entity] = {
     for {
@@ -68,7 +79,7 @@ class WorldImpl() extends World {
     }
   }
 
-  var entities: Seq[Entity] = List(reliant, star1,  planet1) ++ background
+  var entities: Seq[Entity] = List(player, reliant, star1,  planet1) ++ background
 
 }
 

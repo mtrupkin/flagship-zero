@@ -14,7 +14,22 @@ trait Weapon {
   val ratingProp = new ObjectProperty(this, "rating", rating)
 }
 
-case class Phaser1(rating: Int) extends Weapon {
+trait DirectWeapon extends Weapon {
+  def fire(target: Entity): Unit = {
+
+  }
+}
+
+trait ProjectileWeapon extends Weapon {
+  def fire(position: Point, target: Entity): Projectile = {
+    val heading = target.position - position
+    val projectile = Projectile(name, position, heading, 1, 1)
+    projectile.activate()
+    projectile
+  }
+}
+
+case class Phaser1(rating: Int) extends DirectWeapon {
   lazy val name = "Phaser-1"
   val killZone = 30
 
@@ -29,19 +44,12 @@ case class Phaser1(rating: Int) extends Weapon {
   }
 }
 
-case class Torpedo1(rating: Int) extends Weapon {
+case class Torpedo1(rating: Int) extends ProjectileWeapon {
   lazy val name = "Torpedo-1"
   def attack(range: Double): Int = {
     val damage = Combat.attack(rating, 2)
     println(s"damage: $damage")
     damage
-  }
-
-  def fire(position: Point, target: Entity): Projectile = {
-    val heading = target.position - position
-    val projectile = Projectile("Torp1", position, heading, 1, 1)
-    projectile.activate()
-    projectile
   }
 }
 
@@ -55,8 +63,8 @@ case class Projectile(
     var position: Point,
     var heading: Vect,
     attack: Int,
-    defense: Int) extends Movable {
-  val speed: Int = 100
+    defense: Int) extends Movable with Target {
+  val speed: Int = 30
 
   def sprite: Sprite = {
     Oryx.sprite(s"projectile-1", 1)
@@ -82,10 +90,6 @@ case class Ship(
 
   def damage(amount: Int): Unit = {
     shields -= amount
-  }
-
-  def fire(weapon: Torpedo1, target: Entity): Projectile = {
-    weapon.fire(position, target)
   }
 
   override def sprite: Sprite = {

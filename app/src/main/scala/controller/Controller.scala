@@ -34,7 +34,8 @@ with Game {
   var lastPulse: Long = System.nanoTime()
 
   val timer = AnimationTimer((now: Long) => {
-    val elapsed = ((now-lastPulse)/100000).toInt
+    val elapsed = Math.min(((now-lastPulse)/100000).toInt, 1000)
+
     currentState.update(elapsed)
     lastPulse = now
   })
