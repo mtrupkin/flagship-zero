@@ -17,19 +17,17 @@ trait World {
       e.update(elapsed)
 
       if (e.active) {
-        e.active(elapsed)
+        e.activated(elapsed)
       }
     })
 
 
     if (turnActive) {
       turnElapsed += elapsed
-//      println(turnElapsed)
       if (turnElapsed > 1000) {
         turnActive = false
         entities.foreach(_.endTurn())
         completed()
-//        println("turn completed")
       }
     }
   }
@@ -38,25 +36,25 @@ trait World {
   var turnActive = false
   var turnElapsed: Int = _
   def startTurn(completed: () => Unit) = {
-    turnElapsed = 0
     turnActive = true
+    turnElapsed = 0
     this.completed = completed
   }
 
   def activate(completed: () => Unit) = {
-    entities.foreach(_.activate())
+    entities.foreach(_.startTurn())
     startTurn(completed)
   }
 
-  def fire(ship: Ship, weapon: Weapon, target: Target): Unit = {
+  def fire(ship: Ship, weapon: Weapon, target: Targetable): Unit = {
     weapon match {
-      case projectileWeapon: ProjectileWeapon => {
+      case projectileWeapon: TorpedoWeapon => {
         val shot = projectileWeapon.fire(ship.position, target)
         entities = entities :+ shot
       }
       case directWeapon: DirectWeapon => directWeapon.fire(target)
-
     }
+    ship.power -= 1
   }
 }
 

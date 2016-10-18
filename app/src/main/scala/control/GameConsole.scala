@@ -1,7 +1,7 @@
 package control
 
 import console.Transform
-import model.{Entity, Projectile, Ship, Target}
+import model.{Entity, Projectile, Ship, Targetable}
 import org.mtrupkin.math.{Point, Size, Vect}
 
 import scala.collection.mutable
@@ -62,7 +62,7 @@ class GameConsole(val transform: Transform) extends Pane {
     }
   }
 
-  class TargetNode(val target: Target) extends EntityNode(target)
+  class TargetNode(val target: Targetable) extends EntityNode(target)
 
   class ShipNode(ship: Ship) extends TargetNode(ship) {
     override def update(elapsed: Int): Unit = {
@@ -96,7 +96,7 @@ class GameConsole(val transform: Transform) extends Pane {
     })
   }
 
-  def pick(p: Point): Option[Target] = {
+  def pick(p: Point): Option[Targetable] = {
     def accept(e: EntityNode): Boolean = {
       val n = (p - e.position).normal
       n < (e.size / 2).normal
@@ -111,7 +111,7 @@ class GameConsole(val transform: Transform) extends Pane {
     val node = e match {
       case ship: Ship => new ShipNode(ship)
       case projectile: Projectile => new ProjectileNode(projectile)
-      case target: Target => new TargetNode(target)
+      case target: Targetable => new TargetNode(target)
       case _ => new EntityNode(e)
     }
     nodes += node

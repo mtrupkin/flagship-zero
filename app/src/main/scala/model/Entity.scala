@@ -8,34 +8,27 @@ trait Entity {
   var position: Point
   def sprite: Sprite
 
-  var active: Boolean = false
-
   def update(elapsed: Int): Unit = {}
 
-  def active(elapsed: Int): Unit = {}
-
-  def activate(): Unit = {
-    active = true
-  }
-
-  def endTurn(): Unit = {
-    active = false
-  }
-}
-
-trait Target extends Entity {
-  def name: String
+  var active: Boolean = false
+  def activated(elapsed: Int): Unit = {}
+  def startTurn(): Unit = { active = true }
+  def endTurn(): Unit = { active = false }
 }
 
 case class StaticEntity(var position: Point, sprite: Sprite) extends Entity
 
-trait Subtype extends Target {
+trait Targetable extends Entity {
+  def name: String
+}
+
+trait Subtyped extends Targetable {
   def subtype: String
   val subtypeMap: Map[String, String]
   def sprite(): Sprite = Oryx.sprite(subtypeMap(subtype))
 }
 
-case class Star(name: String, subtype: String, var position: Point) extends Subtype {
+case class Star(name: String, subtype: String, var position: Point) extends Subtyped {
   // star classes
   // O hot
   // B hot super-giant
@@ -55,7 +48,7 @@ case class Star(name: String, subtype: String, var position: Point) extends Subt
   )
 }
 
-case class Planet(name: String, subtype: String, var position: Point) extends Subtype {
+case class Planet(name: String, subtype: String, var position: Point) extends Subtyped {
   // M earth-like
   // A aquatic
   // B barren

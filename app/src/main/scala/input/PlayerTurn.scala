@@ -1,7 +1,7 @@
 package input
 
 import controller.Game
-import model.{Ship, Target}
+import model.{Ship, Targetable}
 import org.mtrupkin.math.Point
 
 import scalafx.scene.input.KeyCode._
@@ -15,14 +15,14 @@ import scala.concurrent.ExecutionContext.Implicits.global
 trait PlayerInputMachine { self: Game =>
   trait PlayerTurn { self: GameControllerState =>
     class PlayerTurnState extends ConsoleInputState {
-      def performFire(target: Option[Target]): Unit = {
+      override def onEnter(): Unit = println("player turn")
+
+      def performFire(target: Option[Targetable]): Unit = {
         target match {
           case Some(ship: Ship) => {
             val newState = new PlayerWaitState(this)
-
             fire(ship)
             world.startTurn(newState.finished)
-
             changeState(newState)
           }
           case _ =>
@@ -31,8 +31,8 @@ trait PlayerInputMachine { self: Game =>
 
       def performMove(p: Point): Unit = {
         val newState = new PlayerWaitState(this)
-        val future = move(world.player, p)
-        future.onSuccess { case _ => newState.finished() }
+        world.player.move(p)
+        world.startTurn(newState.finished)
         changeState(newState)
       }
 

@@ -20,13 +20,6 @@ import scalafx.application.Platform
 import scalafx.collections.ObservableBuffer
 import scalafx.scene.control.SelectionMode
 
-class FiniteQueue(maxSize: Int) extends mutable.Queue[Double] {
-  def enqueueFinite(elem: Double): Unit = {
-    enqueue(elem)
-    while (size > maxSize) { dequeue }
-  }
-}
-
 
 trait Game extends InputMachine {
   self: Controller =>
@@ -34,10 +27,10 @@ trait Game extends InputMachine {
     with GameInputMachine {
     val name = "Game"
 
-    var shipTarget: Option[Target] = None
-    var cursorTarget: Option[Target] = None
+    var shipTarget: Option[Targetable] = None
+    var cursorTarget: Option[Targetable] = None
 
-    def target: Option[Target] = shipTarget.orElse(cursorTarget)
+    def target: Option[Targetable] = shipTarget.orElse(cursorTarget)
 
     @FXML var rootPane: Pane = _
     @FXML var consolePane: Pane = _
@@ -114,6 +107,14 @@ trait Game extends InputMachine {
 
     }
 
+    class FiniteQueue(maxSize: Int) extends mutable.Queue[Double] {
+      def enqueueFinite(elem: Double): Unit = {
+        enqueue(elem)
+        while (size > maxSize) { dequeue }
+      }
+    }
+
+    val fpsQueue = new FiniteQueue(10000)
 
     override def update(elapsed: Int): Unit = {
       def fpsUpdate(): Unit = {
@@ -138,16 +139,13 @@ trait Game extends InputMachine {
       fpsUpdate()
     }
 
-    val fpsQueue = new FiniteQueue(10000)
-
-
 
     def world(p: Point): Point = {
       implicit val origin = player.position
       transform.world(p)
     }
 
-    def displayTarget(t: Option[Target]): Unit = {
+    def displayTarget(t: Option[Targetable]): Unit = {
       def displayEmptyTarget(): Unit = {
         targetLabel.setText("None")
         targetTypeLabel.setText("")
@@ -155,7 +153,7 @@ trait Game extends InputMachine {
         targetDistanceLabel.setText("")
       }
 
-      def displayTarget(t: Target): Unit = {
+      def displayTarget(t: Targetable): Unit = {
         targetLabel.setText(t.name)
         val targetType = t match {
           case _:Planet => "Planet"
@@ -170,23 +168,12 @@ trait Game extends InputMachine {
       }
 
       t match {
-        case Some(b: Target) => displayTarget(b)
+        case Some(b: Targetable) => displayTarget(b)
         case _ => displayEmptyTarget()
       }
     }
 
-    def pick(p: Point): Option[Target] = console.pick(p)
-
-    def move(source: Ship, p1: Point): Future[Unit] = {
-      val motion = new TieredMotion(player.position, player.heading)
-      val v = motion(p1)
-      val p = source.position + v
-      console.move(source, p).map( _ => {
-        val heading = p - source.position
-        source.position = p
-        source.heading = heading.normalize
-      })
-    }
+    def pick(p: Point): Option[Targetable] = console.pick(p)
 
     def displayMove(p : Point): Unit = {
 //      val motion = new CircularMotion(world.ship.position, world.ship.heading)
@@ -201,17 +188,18 @@ trait Game extends InputMachine {
       def fireWeapon(weapon: Weapon): Unit = {
         val range = (destination.position - ship.position).normal
         destination.damage(weapon.attack(range))
-        ship.power -= 1
       }
 
       val weapons = weaponsTable.selectionModel().getSelectedItems.toList
-      val animations = weapons.map {
+
+      weapons.map {
         case torpedo: Torpedo1 => {
           fireWeapon(torpedo)
           world.fire(ship, torpedo, destination)
         }
         case phaser: Phaser1 => {
           fireWeapon(phaser)
+          world.fire(ship, phaser, destination)
           console.firePhaser(destination.position, ship.position)
         }
       }
