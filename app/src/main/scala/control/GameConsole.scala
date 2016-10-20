@@ -184,40 +184,6 @@ class GameConsole(val transform: Transform) extends Pane {
     nodes.find(_.entity == entity)
   }
 
-  def move(entity: Ship, _p: Point): Future[Unit] = {
-    movePath.elements.clear()
-
-    val p1 = toSpritePosition(_p, entity.sprite.size)//transform.screen(_p)
-    val p0 = toSpritePosition(entity.position, entity.sprite.size)
-
-    val promise = Promise[Unit]()
-    val entityNode = findEntityNode(entity).get
-
-    val v = _p - entity.position
-
-    val translate = new TranslateTransition(Duration(250), entityNode) {
-      fromX = p0.x
-      fromY = p0.y
-
-      toX = p1.x
-      toY = p1.y
-    }
-
-    val rotate = new RotateTransition(Duration(250), entityNode) {
-      val radians = entity.heading.angle(v)
-      val theta = -radians*180/Math.PI
-      byAngle = theta
-    }
-
-    val seqAnimation = new SequentialTransition  {
-      children.add(rotate)
-      children.add(translate)
-      onFinished = (e: ActionEvent) => promise success ()
-    }
-    seqAnimation.play()
-    promise.future
-  }
-
   def destroy(entity: Entity): Future[Unit] = {
     val promise = Promise[Unit]()
     val entityNode = findEntityNode(entity).get

@@ -60,7 +60,8 @@ case class Projectile(
    var position: Point,
    var heading: Vect,
    attack: Int,
-   defense: Int) extends Movable with Targetable {
+   var defense: Int,
+   var maxDefense: Int = 3) extends Movable with Targetable {
   var speed: Int = 20
 
   def sprite: Sprite = {

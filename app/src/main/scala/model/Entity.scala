@@ -20,6 +20,8 @@ case class StaticEntity(var position: Point, sprite: Sprite) extends Entity
 
 trait Targetable extends Entity {
   def name: String
+  def damage(amount: Int): Unit = {}
+  def block(): Unit = {}
 }
 
 trait Subtyped extends Targetable {

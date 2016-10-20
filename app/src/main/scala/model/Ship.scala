@@ -39,7 +39,7 @@ case class Ship(
 
   var shields = maxShields
 
-  def damage(amount: Int): Unit = {
+  override def damage(amount: Int): Unit = {
     shields -= amount
   }
 

@@ -173,8 +173,6 @@ trait Game extends InputMachine {
       }
     }
 
-    def pick(p: Point): Option[Targetable] = console.pick(p)
-
     def displayMove(p : Point): Unit = {
 //      val motion = new CircularMotion(world.ship.position, world.ship.heading)
       val motion = new TieredMotion(player.position, player.heading)
@@ -182,7 +180,7 @@ trait Game extends InputMachine {
       console.displayLineMove(player.position, v)
     }
 
-    def fire(destination: Ship): Unit = {
+    def fire(destination: Targetable): Future[Unit] = {
       val ship = player
 
       def fireWeapon(weapon: Weapon): Unit = {
@@ -190,14 +188,15 @@ trait Game extends InputMachine {
         destination.damage(weapon.attack(range))
       }
 
-      val weapons = weaponsTable.selectionModel().getSelectedItems.toList
+      val weapon = weaponsTable.selectionModel().getSelectedItems.toList.headOption
 
-      weapons.map {
-        case torpedo: Torpedo1 => {
+      weapon match {
+        case Some(torpedo: Torpedo1) => {
           fireWeapon(torpedo)
           world.fire(ship, torpedo, destination)
+          Future.successful()
         }
-        case phaser: Phaser1 => {
+        case Some(phaser: Phaser1) => {
           fireWeapon(phaser)
           world.fire(ship, phaser, destination)
           console.firePhaser(destination.position, ship.position)

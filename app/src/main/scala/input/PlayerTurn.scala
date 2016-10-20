@@ -19,11 +19,12 @@ trait PlayerInputMachine { self: Game =>
 
       def performFire(target: Option[Targetable]): Unit = {
         target match {
-          case Some(ship: Ship) => {
+          case Some(ship: Targetable) => {
             val newState = new PlayerWaitState(this)
-            fire(ship)
-            world.startTurn(newState.finished)
-            changeState(newState)
+            fire(ship).map(q => {
+              world.startTurn(newState.finished)
+              changeState(newState)
+            })
           }
           case _ =>
         }
@@ -32,6 +33,7 @@ trait PlayerInputMachine { self: Game =>
       def performMove(p: Point): Unit = {
         val newState = new PlayerWaitState(this)
         world.player.move(p)
+        console.movePath.elements.clear()
         world.startTurn(newState.finished)
         changeState(newState)
       }
@@ -48,7 +50,7 @@ trait PlayerInputMachine { self: Game =>
       }
 
       def mousePrimaryPressed(event: MouseEvent): Unit = {
-        val target = pick(toPoint(event))
+        val target = console.pick(toPoint(event))
         performFire(target)
       }
 

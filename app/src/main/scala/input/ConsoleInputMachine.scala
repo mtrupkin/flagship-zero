@@ -44,7 +44,7 @@ trait InputMachine extends PlayerInputMachine with WaitInputMachine {
       def mouseMove(event: sfxi.MouseEvent): Unit = {
         val cursor = toPoint(event)
         displayMouse(cursor)
-        cursorTarget = pick(cursor)
+        cursorTarget = console.pick(cursor)
         displayTarget(cursorTarget)
       }
       def mousePressed(event: sfxi.MouseEvent): Unit = {}
